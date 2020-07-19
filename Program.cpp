@@ -14,6 +14,5 @@ int main()
 	{
 		UPDATESOUND;
 	}
-
 	End();
 }
