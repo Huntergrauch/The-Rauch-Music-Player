@@ -40,7 +40,7 @@ struct Audio
 
     void Load(const char* path)
     {
-        const std::string pathstring = path;
+        const std::string pathstring(path);
         std::string pathextension = GetFileExtension(pathstring);
 
         if (pathextension == "wav")
@@ -58,14 +58,13 @@ struct Audio
             mp3dec_t mp3d;
             mp3dec_file_info_t info;
             
-            std::ifstream file(path, std::ios::binary);
+            std::ifstream file(pathstring, std::ios::binary);
 
             file.unsetf(std::ios::skipws);
             std::istream_iterator<uint8_t> begin(file), end;
             std::vector<uint8_t> fileData(begin, end);
-
             cout << "decoding file..." << endl;
-            mp3dec_load_buf(&mp3d, (const uint8_t*)fileData.data(), fileData.size(), &info, 0, 0);
+            int decodeerror = mp3dec_load_buf(&mp3d, (const uint8_t*)fileData.data(), fileData.size(), &info, 0, 0);
             cout << "done decoding file" << endl;
             file.close();
            // cout << info.hz;
@@ -73,13 +72,15 @@ struct Audio
             SampleRate = info.hz;
             outstream->layout.channel_count = info.channels;
             cout << "Number of Samples: " <<info.samples << endl
+            << "Sample Rate: " << info.hz << "hz" << endl
+            << "Number of Channels: " << info.channels << endl
             << "loading samples..." << endl;
             for (int c = 0; c < info.channels;c++)
             {
                 vector<float> empty;
                 Samples.push_back(empty);
                 
-                for (int s = c; s < info.samples;s = s + 2)
+                for (int s = c; s < info.samples;s = s + info.channels)
                 {
                     Samples[c].push_back(info.buffer[s]);
                 }

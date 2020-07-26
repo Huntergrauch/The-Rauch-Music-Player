@@ -21,21 +21,6 @@ struct Character {
 	unsigned int Advance;
 };
 
-class Font; //Text Forward Declaration
-
-struct FontManager
-{
-
-    vector<Font*> Fonts;
-    
-    void AddFont(Font* font)
-    {
-        Fonts.push_back(font);
-    }
-};
-
-extern FontManager fontmanager;
-
 class Font {
 
 public:
@@ -102,7 +87,6 @@ public:
         cout << "Font Loaded" << endl;
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
-        fontmanager.AddFont(this);
 	}
 
     void DeleteFont()
@@ -132,22 +116,22 @@ struct TextManager
     }
 };
 
-extern TextManager textmanager;
-extern unsigned int SCR_WIDTH, SCR_HEIGHT;
+unsigned int TEXTSCALE = 1024;
 class Text
 {
 public:
     Font* TextFont;
     string String;
     vec3 Color;
+    float Scale;
 
     unsigned int VAO, VBO;
     
     //Text constructor creates a line of text at the target gameobject's position.
-    Text(string textstring, Font* font, vec3 color)
+    Text(string textstring, Font* font, vec3 color, float scale)
     {
-        String = textstring; TextFont = font; Color = color;
-
+        String = textstring; TextFont = font; Color = color; Scale = scale;
+        
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glBindVertexArray(VAO);
@@ -163,18 +147,16 @@ public:
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        textmanager.AddText(this);
     }
-
+    Text() = default;
     
-
-    void Draw(Shader* shader, float TextX, float TextY, float Scale)
+    void Draw(Shader* shader, float TextX, float TextY)
     {
         // activate corresponding render state
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         shader->use();
-        //ActiveCamera.SetCameraUniforms(*shader, SCR_WIDTH, SCR_HEIGHT);
+        //ActiveCamera.SetCameraUniforms(*shader, TEXTSCALE, TEXTSCALE);
         //shader->setMat4("model", TargetObject->Model);
         shader->setBool("ThreeDtext", false);
         glUniform3f(glGetUniformLocation(shader->ID, "textColor"), Color.x, Color.y, Color.z);
@@ -190,13 +172,13 @@ public:
         {
             Character ch = TextFont->Characters[*c];
 
-            float xpos = TextX + ch.Bearing.x * (Scale / SCR_WIDTH);
-            float ypos = TextY - (ch.Size.y - ch.Bearing.y) * (Scale / SCR_HEIGHT);
+            float xpos = TextX + ch.Bearing.x * (Scale / TEXTSCALE);
+            float ypos = TextY - (ch.Size.y - ch.Bearing.y) * (Scale / TEXTSCALE);
 
             //cout << xpos << endl;
 
-            float w = ch.Size.x * (Scale / SCR_WIDTH);
-            float h = ch.Size.y * (Scale / SCR_HEIGHT);
+            float w = ch.Size.x * (Scale / TEXTSCALE);
+            float h = ch.Size.y * (Scale / TEXTSCALE);
             // update VBO for each character
             TextVertex vertices[6] = {
                 { vec3(xpos,     ypos + h, 0.0f),   vec2(0.0f, 0.0f) },
@@ -216,11 +198,112 @@ public:
             // render quad
             glDrawArrays(GL_TRIANGLES, 0, 6);
             // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            TextX += (ch.Advance >> 6) * (Scale / SCR_WIDTH); // bitshift by 6 to get value in pixels (2^6 = 64)
+            TextX += (ch.Advance >> 6) * (Scale / TEXTSCALE); // bitshift by 6 to get value in pixels (2^6 = 64)
         }
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_BLEND);
     }
+
+    float GetStringScreenWidth()
+    {
+        float StringWidth = 0.0f;
+        std::string::const_iterator c;
+        for (c = String.begin(); c != String.end(); c++)
+        {
+            Character ch = TextFont->Characters[*c];
+            float w = ch.Size.x * (Scale / TEXTSCALE);
+            float space = (ch.Advance >> 6) * (Scale / TEXTSCALE);
+            StringWidth += space;
+        }
+        return StringWidth;
+    }
 };
 
+class SolidRectangle {
+
+    unsigned int VAO, VBO;
+public:
+    void SetUpRect()
+    {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * 6, NULL, GL_DYNAMIC_DRAW);
+
+        // vertex positions
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+    void Draw(Shader shader, float x, float y, float width, float height, vec3 color)
+    {
+        glBindVertexArray(VAO);
+        shader.use();
+        shader.setVec3("rectColor", color);
+        //SpriteShader.setMat4("projection", glm::perspective(45.0f, (float)TEXTSCALE / (float)TEXTSCALE, 0.1f, 150.0f));
+        float xpos = x;
+        float ypos = y;
+
+        float w = width;
+        float h = height;
+
+        vec3 vertices[6] = {
+                vec3(xpos,     ypos + h, 0.0f),
+                vec3(xpos,     ypos, 0.0f),
+                vec3(xpos + w, ypos,0.0f),
+
+                vec3(xpos,     ypos + h, 0.0f),
+                vec3(xpos + w, ypos,0.0f),
+                vec3(xpos + w, ypos + h, 0.0f)
+        };
+        // update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+    }
+};
+
+class InputTextBox
+{
+public:
+    Text InputText;
+    SolidRectangle InputBox;
+    vec3 BoxColor = vec3(1.0f);
+
+    InputTextBox(Font* font, vec3 textcolor, float scale)
+    {
+        InputText = Text("", font, textcolor, scale);
+        InputBox.SetUpRect();
+    }
+    InputTextBox(Font* font, vec3 textcolor, vec3 boxcolor, float scale)
+    {
+        InputText = Text("", font, textcolor, scale);
+        InputBox.SetUpRect();
+        BoxColor = boxcolor;
+    }
+    InputTextBox() = default;
+    void Draw(Shader textshader, float TextX, float TextY,
+        Shader boxshader, float boxwidth)
+    {
+        string fullstring = InputText.String;
+        
+        while (boxwidth < InputText.GetStringScreenWidth())
+        {
+            InputText.String.erase(0,1);
+        }
+        
+        InputBox.Draw(boxshader, TextX - 0.005f, TextY - 0.005f, boxwidth, 0.06f * InputText.Scale, BoxColor);
+        InputText.Draw(&textshader, TextX, TextY);
+
+        InputText.String = fullstring;
+    }
+};
