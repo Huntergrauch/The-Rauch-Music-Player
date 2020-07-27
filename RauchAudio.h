@@ -38,7 +38,7 @@ struct Audio
         return SampleRate;
     }
 
-    void Load(const char* path)
+    int Load(const char* path)
     {
         const std::string pathstring(path);
         std::string pathextension = GetFileExtension(pathstring);
@@ -52,6 +52,11 @@ struct Audio
             SamplesPerChannel = file.getNumSamplesPerChannel();
             outstream->layout.channel_count = file.getNumChannels();
             ChannelCount = file.getNumChannels();
+            if (!SampleRate)
+            {
+                cout << "failed to load wav file" << endl;
+                return -1;
+            }
         }
         else if (pathextension == "mp3")
         {
@@ -65,6 +70,11 @@ struct Audio
             std::vector<uint8_t> fileData(begin, end);
             cout << "decoding file..." << endl;
             int decodeerror = mp3dec_load_buf(&mp3d, (const uint8_t*)fileData.data(), fileData.size(), &info, 0, 0);
+            if (decodeerror != 0)
+            {
+                cout << "failed to decode file" << endl;
+                return -1;
+            }
             cout << "done decoding file" << endl;
             file.close();
            // cout << info.hz;
@@ -89,16 +99,18 @@ struct Audio
             SamplesPerChannel = Samples[0].size();
             ChannelCount = Samples.size();
             free(info.buffer);
+            BufferSize = (SampleRate / ChannelCount) * (outstream->software_latency);
         }
         else
         {
-            cout << "File extension " << pathextension << " not supported";
+            cout << "File extension " << pathextension << " not supported" << endl;
+            return -1;
         }
+        return 0;
     }
     Audio(const char* path)
     {
         Load(path);
-        BufferSize = (SampleRate / ChannelCount) * (outstream->software_latency);
     }
     Audio() = default;
 };
@@ -190,7 +202,7 @@ void StartAudio(Audio audio)
     outstream->sample_rate = ActiveAudio.GetSampleRate();
 }
 
-void End()
+void DeinitializeAudio()
 {
     soundio_outstream_destroy(outstream);
     soundio_device_unref(device);

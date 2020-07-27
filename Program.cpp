@@ -8,6 +8,8 @@
 #include <glm/glm.hpp> //OpenGl Math Library
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <portable-file-dialogs.h>
+
 
 //forward declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -16,7 +18,7 @@ void UpdateTime();
 unsigned int SCR_WIDTH = 1024;
 unsigned int SCR_HEIGHT = 1024;
 
-bool submitted = false;
+bool submitted = false, browse = false;
 
 int main()
 {
@@ -89,8 +91,10 @@ int main()
 	Font font(".\\Resources\\NotoSans-Regular.ttf");
 	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f), 2.0f);
 	Text titletext("The Rauch Audio Player", &font, vec3(0.2f, 0.0f, 0.2f), 1.5f);
-	Text introtext("Type the path to a mp3 or wav file.", &font, vec3(0.1f, 0.0f, 0.1f), 1.0);
-	
+	Text introtext("Type the path to a mp3 or wav file,", &font, vec3(0.1f, 0.0f, 0.1f), 0.8);
+	Text TABtext("or Press TAB to open browse your files for one.", &font, vec3(0.1f, 0.0f, 0.1f), 0.8);
+	Text entertext("Press ENTER to submit", &font, vec3(0.1f, 0.0f, 0.1f), 1.0);
+
 	SolidRectangle rect; 
 	SolidRectangle titlerect;
 	rect.SetUpRect();
@@ -107,10 +111,31 @@ int main()
 
 		if (submitted)
 		{
-			Audio testaudio(inputtext.InputText.String.c_str());
-			StartAudio(testaudio);
-			submitted = false;
-			inputtext.InputText.String = "Audio Submitted";
+			cout << "submitted path: " << inputtext.InputText.String.c_str() << endl;
+			Audio testaudio;
+			if (testaudio.Load(inputtext.InputText.String.c_str()) == 0)
+			{
+				StartAudio(testaudio);
+				submitted = false;
+				
+				inputtext.InputText.String = "Audio Submitted";
+			}
+			else
+			{
+				inputtext.InputText.String = "Submitted File Invalid";
+				submitted = false;
+			}
+			
+		}
+
+		if (browse)
+		{
+			vector<string> selection = pfd::open_file("Select a audio file").result();
+			if (selection.size() > 0)
+			{
+				inputtext.InputText.String = selection[0];
+			}
+			browse = false;
 		}
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
@@ -120,17 +145,19 @@ int main()
 		rect.Draw(RectShader, -0.5f, -0.5f, 1.0f, 1.0f, vec3(9.0f, 9.0f, 0.0f));
 		titlerect.Draw(RectShader, -0.5f, 0.3f, 1.0f, 0.2f, vec3(0.5f, 0.5f, 0.0f));
 		inputtext.Draw(TextShader, -0.25f, -0.25, RectShader, 0.5f);
-		titletext.Draw(&TextShader, -(titletext.GetStringScreenWidth() / 2), 0.4);
-		introtext.Draw(&TextShader, -(titletext.GetStringScreenWidth() / 2), 0.0);
-		
+		titletext.Draw(&TextShader, -(titletext.GetStringScreenWidth() / 2), 0.35);
+		introtext.Draw(&TextShader, -(introtext.GetStringScreenWidth() / 2), 0.2);
+		TABtext.Draw(&TextShader, -(TABtext.GetStringScreenWidth() / 2), 0.1);
+		entertext.Draw(&TextShader, -(entertext.GetStringScreenWidth() / 2), 0.0);
 
 
 		//swap buffers & check events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	glfwTerminate();
 	font.DeleteFont();
-	End();
+	DeinitializeAudio();
 }
 
 float currentTime = 0.0f;

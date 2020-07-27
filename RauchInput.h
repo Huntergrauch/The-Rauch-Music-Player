@@ -3,6 +3,7 @@
 #include "RauchGUI.h"
 
 extern bool submitted;
+extern bool browse;
 
 extern unsigned int SCR_WIDTH, SCR_HEIGHT;
 float lastMouseX = (float)SCR_WIDTH / 2.0;
@@ -59,5 +60,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		submitted = true;
 		//ActiveInputTextBox = NULL;
+	}
+
+	//browse for file
+	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+	{
+		browse = true;
 	}
 }
