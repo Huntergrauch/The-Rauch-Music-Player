@@ -18,7 +18,7 @@ void UpdateTime();
 unsigned int SCR_WIDTH = 1024;
 unsigned int SCR_HEIGHT = 1024;
 
-bool submitted = false, browse = false;
+bool browse = false;
 
 int main()
 {
@@ -57,6 +57,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_position_callback);
 	glfwSetScrollCallback(window, mouse_scroll_callback);
 	glfwSetCharCallback(window, character_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwMaximizeWindow(window);
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
@@ -87,13 +88,15 @@ int main()
 	Shader TextShader(".\\Shaders\\VertexShaderText.vert", ".\\Shaders\\FragmentShaderText.frag");
 	Shader RectShader(".\\Shaders\\VertexShaderRect.vert", ".\\Shaders\\FragmentShaderRect.frag");
 
+	vec3 ThemeColor = vec3(1.0f,0.0f,1.00f);
 
 	Font font(".\\Resources\\NotoSans-Regular.ttf");
-	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f), 2.0f);
+	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f), 2.0f, -0.375f, -0.375f, 0.75f);
 	Text titletext("The Rauch Audio Player", &font, vec3(0.2f, 0.0f, 0.2f), 1.5f);
 	Text introtext("Type the path to a mp3 or wav file,", &font, vec3(0.1f, 0.0f, 0.1f), 0.8);
 	Text TABtext("or Press TAB to open browse your files for one.", &font, vec3(0.1f, 0.0f, 0.1f), 0.8);
-	Text entertext("Press ENTER to submit", &font, vec3(0.1f, 0.0f, 0.1f), 1.0);
+	TextButton submitbutton("Submit", vec3(0.0f), &font,1.0f,ThemeColor * vec3(0.8f), 
+		-0.12f, -0.1f, 0.24f, 0.1f);
 
 	SolidRectangle rect; 
 	SolidRectangle titlerect;
@@ -101,31 +104,32 @@ int main()
 	titlerect.SetUpRect();
 
 	InitializeAudio();
-	
-	ActiveInputTextBox = &inputtext;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		UpdateTime();
 		process_input(window);
 		//UPDATESOUND;
 
-		if (submitted)
+		
+		
+		inputtext.Update();
+
+		if (submitbutton.Button.PRESSED)
 		{
 			cout << "submitted path: " << inputtext.InputText.String.c_str() << endl;
 			Audio testaudio;
 			if (testaudio.Load(inputtext.InputText.String.c_str()) == 0)
 			{
 				StartAudio(testaudio);
-				submitted = false;
 				
 				inputtext.InputText.String = "Audio Submitted";
 			}
 			else
 			{
 				inputtext.InputText.String = "Submitted File Invalid";
-				submitted = false;
 			}
-			
+			submitbutton.Button.Reset();
 		}
 
 		if (browse)
@@ -142,13 +146,13 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //draw blue background
 
-		rect.Draw(RectShader, -0.5f, -0.5f, 1.0f, 1.0f, vec3(9.0f, 9.0f, 0.0f));
-		titlerect.Draw(RectShader, -0.5f, 0.3f, 1.0f, 0.2f, vec3(0.5f, 0.5f, 0.0f));
-		inputtext.Draw(TextShader, -0.25f, -0.25, RectShader, 0.5f);
-		titletext.Draw(&TextShader, -(titletext.GetStringScreenWidth() / 2), 0.35);
+		rect.Draw(RectShader, -1.0f, -1.0f, 2.0f, 1.8f, ThemeColor);
+		titlerect.Draw(RectShader, -1.0f, 0.8f, 2.0f, 0.2f, ThemeColor * vec3(0.8f));
+		inputtext.Draw(TextShader, RectShader);
+		titletext.Draw(&TextShader, -(titletext.GetStringScreenWidth() / 2), 0.85);
 		introtext.Draw(&TextShader, -(introtext.GetStringScreenWidth() / 2), 0.2);
 		TABtext.Draw(&TextShader, -(TABtext.GetStringScreenWidth() / 2), 0.1);
-		entertext.Draw(&TextShader, -(entertext.GetStringScreenWidth() / 2), 0.0);
+		submitbutton.Draw(RectShader, TextShader);
 
 
 		//swap buffers & check events

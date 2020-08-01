@@ -33,8 +33,10 @@ public:
 		
 
 		//make sure streams can throw exceptions
+#ifdef _WIN32
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
+#endif
 		try
 		{
 			cout << "reading shaders..." << endl;
@@ -96,9 +98,11 @@ public:
 		ifstream geometryStream;
 
 		//make sure streams can throw exceptions
+#ifdef _WIN32
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
 		fragmentStream.exceptions(ifstream::failbit || ifstream::badbit);
 		geometryStream.exceptions(ifstream::failbit || ifstream::badbit);
+#endif
 		try
 		{
 			cout << "reading shaders..." << endl;

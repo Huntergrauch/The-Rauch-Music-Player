@@ -153,6 +153,7 @@
     <ClInclude Include="RauchAudio.h" />
     <ClInclude Include="RauchGUI.h" />
     <ClInclude Include="RauchInput.h" />
+    <ClInclude Include="RauchSprite.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

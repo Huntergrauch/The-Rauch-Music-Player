@@ -28,7 +28,6 @@ struct Audio
 	unsigned int SampleRate = 44100;
     unsigned int ChannelCount = 0;
     vector<vector<float>> Samples;
-    unsigned int BufferSize = 0;
     unsigned int currentSample = 0;
     bool Paused = false;
     bool Looping = true;
@@ -99,7 +98,6 @@ struct Audio
             SamplesPerChannel = Samples[0].size();
             ChannelCount = Samples.size();
             free(info.buffer);
-            BufferSize = (SampleRate / ChannelCount) * (outstream->software_latency);
         }
         else
         {
@@ -117,14 +115,10 @@ struct Audio
 
 Audio ActiveAudio;
 
-static float seconds_offset = 0.0f;
 static void write_callback(struct SoundIoOutStream* outstream,
     int frame_count_min, int frame_count_max)
 {
-    
     const struct SoundIoChannelLayout* layout = &outstream->layout;
-    float float_sample_rate = outstream->sample_rate;
-    float seconds_per_frame = 1.0f / float_sample_rate;
     struct SoundIoChannelArea* areas;
     int frames_left = frame_count_max;
     int err;
@@ -135,13 +129,15 @@ static void write_callback(struct SoundIoOutStream* outstream,
             fprintf(stderr, "%s\n", soundio_strerror(err));
             exit(1);
         }
+        int framestofill = frame_count;
+        if (ActiveAudio.Samples.size() <= 0)
+        {
+            framestofill = 0;
+        }
 
         if (!frame_count)
             break;
-        int fileframes = ActiveAudio.BufferSize;
-        //cout << "current sample: " << ActiveAudio.currentSample << endl << "fileframes: " << fileframes << endl;
-        for (int frame = 0; frame < fileframes; frame += 1) {
-           // cout << "frame: " << frame << endl;
+        for (int frame = 0; frame < framestofill; frame += 1) {
             for (int channel = 0; channel < layout->channel_count; channel += 1) {
                 float sample = ActiveAudio.Samples[channel][ActiveAudio.currentSample];
                 float* ptr = (float*)(areas[channel].ptr + areas[channel].step * frame);
@@ -157,8 +153,6 @@ static void write_callback(struct SoundIoOutStream* outstream,
                 ActiveAudio.currentSample = 0;
             }
         }
-        //ActiveAudio.currentSample += ActiveAudio.BufferSize;
-        seconds_offset = fmod(seconds_offset + seconds_per_frame * frame_count, 1.0);
 
         if ((err = soundio_outstream_end_write(outstream))) {
             fprintf(stderr, "%s\n", soundio_strerror(err));
