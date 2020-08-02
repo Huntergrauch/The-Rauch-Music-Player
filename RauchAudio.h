@@ -9,6 +9,10 @@
 #include "minimp3.h"
 #include "minimp3_ex.h"
 #include "sstream"
+#define DR_FLAC_IMPLEMENTATION
+#include "dr_flac.h"
+
+#include <fstream>
 
 #define UPDATESOUND soundio_flush_events(soundio)
 
@@ -98,6 +102,38 @@ struct Audio
             SamplesPerChannel = Samples[0].size();
             ChannelCount = Samples.size();
             free(info.buffer);
+        }
+        else if (pathextension == "flac")
+        {
+            unsigned int channels;
+            unsigned int sampleRate;
+            drflac_uint64 totalPCMFrameCount;
+            float* pSampleData = drflac_open_file_and_read_pcm_frames_f32(pathstring.c_str(), &channels, &sampleRate, &totalPCMFrameCount, NULL);
+            if (pSampleData == NULL) {
+                // Failed to open and decode FLAC file.
+                return 0;
+            }
+            cout << "total flac frames: "<< totalPCMFrameCount  << ". Number of Channels: "<< channels << endl;
+            for (int c = 0; c < channels;c++)
+            {
+                vector<float> empty;
+                Samples.push_back(empty);
+
+                for (int s = c; s < totalPCMFrameCount;s = s + channels)
+                {
+                    
+                    //cout << "loading frame" << s << endl;
+                    Samples[c].push_back(pSampleData[s]);
+                }
+                
+                
+                
+            }
+            SampleRate = sampleRate;
+            outstream->layout.channel_count = channels;
+            SamplesPerChannel = Samples[0].size();
+            ChannelCount = Samples.size();
+            free(pSampleData);
         }
         else
         {

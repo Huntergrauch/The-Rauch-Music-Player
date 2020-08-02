@@ -41,8 +41,8 @@ int main()
 	glfwMakeContextCurrent(window);
 	GLFWimage images[2];
 	int width, height;
-	images[0].pixels = stbi_load(".\\Textures\\TetraLogo.png", &images[0].width, &images[0].height, 0, 4);
-	images[1].pixels = stbi_load(".\\Textures\\TetraLogoSmall.png", &images[1].width, &images[1].height, 0, 4);
+	images[0].pixels = stbi_load("./Textures/TetraLogo.png", &images[0].width, &images[0].height, 0, 4);
+	images[1].pixels = stbi_load("./Textures/TetraLogoSmall.png", &images[1].width, &images[1].height, 0, 4);
 	glfwSetWindowIcon(window, 2, images);
 
 
@@ -85,12 +85,12 @@ int main()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_SCISSOR_TEST);
 	
-	Shader TextShader(".\\Shaders\\VertexShaderText.vert", ".\\Shaders\\FragmentShaderText.frag");
-	Shader RectShader(".\\Shaders\\VertexShaderRect.vert", ".\\Shaders\\FragmentShaderRect.frag");
+	Shader TextShader("./Shaders/VertexShaderText.vert", "./Shaders/FragmentShaderText.frag");
+	Shader RectShader("./Shaders/VertexShaderRect.vert", "./Shaders/FragmentShaderRect.frag");
 
 	vec3 ThemeColor = vec3(1.0f,0.0f,1.00f);
 
-	Font font(".\\Resources\\NotoSans-Regular.ttf");
+	Font font("./Resources/NotoSans-Regular.ttf");
 	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f), 2.0f, -0.375f, -0.375f, 0.75f);
 	Text titletext("The Rauch Audio Player", &font, vec3(0.2f, 0.0f, 0.2f), 1.5f);
 	Text introtext("Type the path to a mp3 or wav file,", &font, vec3(0.1f, 0.0f, 0.1f), 0.8);
@@ -110,8 +110,6 @@ int main()
 		UpdateTime();
 		process_input(window);
 		//UPDATESOUND;
-
-		
 		
 		inputtext.Update();
 

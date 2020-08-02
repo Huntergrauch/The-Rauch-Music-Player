@@ -237,7 +237,7 @@ public:
     }
     float GetConstHeight()
     {
-        return (0.06f * Scale) * (SCR_WIDTH / SCR_HEIGHT);
+        return (0.06f * Scale) * (SCR_WIDTH / std::max(SCR_HEIGHT,(unsigned int)1));
     }
 };
 
