@@ -12,11 +12,11 @@
 #define DR_FLAC_IMPLEMENTATION
 #include "dr_flac.h"
 
-#include <fstream>
+using namespace std;
 
 #define UPDATESOUND soundio_flush_events(soundio)
 
-using namespace std;
+
 
 std::string GetFileExtension(const std::string& FileName)
 {
@@ -34,7 +34,8 @@ struct Audio
     vector<vector<float>> Samples;
     unsigned int currentSample = 0;
     bool Paused = false;
-    bool Looping = true;
+    bool Looping = false;
+    bool Completed = false;
 
     unsigned int GetSampleRate()
     {
@@ -119,19 +120,16 @@ struct Audio
                 vector<float> empty;
                 Samples.push_back(empty);
 
-                for (int s = c; s < totalPCMFrameCount;s = s + channels)
+                for (int s = c; s < totalPCMFrameCount * channels;s = s + channels)
                 {
                     
                     //cout << "loading frame" << s << endl;
                     Samples[c].push_back(pSampleData[s]);
-                }
-                
-                
-                
+                }  
             }
             SampleRate = sampleRate;
             outstream->layout.channel_count = channels;
-            SamplesPerChannel = Samples[0].size();
+            SamplesPerChannel = totalPCMFrameCount;
             ChannelCount = Samples.size();
             free(pSampleData);
         }
@@ -184,9 +182,14 @@ static void write_callback(struct SoundIoOutStream* outstream,
             {
                 ActiveAudio.currentSample++;
             }
-            else if (ActiveAudio.Looping)
+            else if (ActiveAudio.Looping && !ActiveAudio.Paused)
             {
                 ActiveAudio.currentSample = 0;
+                
+            }
+            else if(!ActiveAudio.Looping && !ActiveAudio.Paused)
+            {
+                ActiveAudio.Completed = true;
             }
         }
 

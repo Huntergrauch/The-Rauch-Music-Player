@@ -90,8 +90,6 @@ class SpriteRenderer
 {
 public:
 	Sprite RenderSprite;
-	float xPos, yPos;
-	float Scale;
 
 	SpriteRenderer(Sprite sprite)
 	{
@@ -106,7 +104,7 @@ public:
 		RenderSprite.SetUpSprite();
 	}
 
-	void Draw(Shader shader)
+	void Draw(Shader shader, float xPos, float yPos, float Scale)
 	{
 		shader.use();
 		glEnable(GL_BLEND);

@@ -26,6 +26,7 @@ class Font {
 public:
 
 	std::map<char, Character> Characters;
+    unsigned int PxHeight;
 	
     Font(const char* fontPath)
     {
@@ -47,6 +48,7 @@ public:
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
 
+        vector<unsigned int> heights;
         for (unsigned char c = 0; c < 128; c++)
         {
             // load character glyph 
@@ -70,6 +72,7 @@ public:
                 GL_UNSIGNED_BYTE,
                 face->glyph->bitmap.buffer
             );
+            heights.push_back(face->glyph->bitmap.rows);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -84,6 +87,7 @@ public:
             };
             Characters.insert(std::pair<char, Character>(c, character));
         }
+        PxHeight = *max_element(heights.begin(),heights.end());
         cout << "Font Loaded" << endl;
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
@@ -151,16 +155,16 @@ public:
     }
     Text() = default;
     
-    void Draw(Shader* shader, float TextX, float TextY)
+    void Draw(Shader shader, float TextX, float TextY)
     {
         // activate corresponding render state
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shader->use();
+        shader.use();
         //ActiveCamera.SetCameraUniforms(*shader, TEXTSCALE, TEXTSCALE);
         //shader->setMat4("model", TargetObject->Model);
-        shader->setBool("ThreeDtext", false);
-        glUniform3f(glGetUniformLocation(shader->ID, "textColor"), Color.x, Color.y, Color.z);
+        shader.setBool("ThreeDtext", false);
+        glUniform3f(glGetUniformLocation(shader.ID, "textColor"), Color.x, Color.y, Color.z);
         glActiveTexture(GL_TEXTURE0);
         glBindVertexArray(VAO);
 
@@ -173,13 +177,13 @@ public:
         {
             Character ch = TextFont->Characters[*c];
 
-            float xpos = TextX + ch.Bearing.x * (Scale / SCR_WIDTH);
-            float ypos = TextY - (ch.Size.y - ch.Bearing.y) * (Scale / SCR_HEIGHT);
+            float xpos = TextX + ch.Bearing.x * (Scale / std::max(SCR_WIDTH, (unsigned)1));
+            float ypos = TextY - (ch.Size.y - ch.Bearing.y) * (Scale / std::max(SCR_HEIGHT, (unsigned)1));
 
             //cout << xpos << endl;
 
-            float w = ch.Size.x * (Scale / SCR_WIDTH);
-            float h = ch.Size.y * (Scale / SCR_HEIGHT);
+            float w = ch.Size.x * (Scale / std::max(SCR_WIDTH, (unsigned)1));
+            float h = ch.Size.y * (Scale / std::max(SCR_HEIGHT, (unsigned)1));
             // update VBO for each character
             TextVertex vertices[6] = {
                 { vec3(xpos,     ypos + h, 0.0f),   vec2(0.0f, 0.0f) },
@@ -199,27 +203,27 @@ public:
             // render quad
             glDrawArrays(GL_TRIANGLES, 0, 6);
             // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            TextX += (ch.Advance >> 6) * (Scale / SCR_WIDTH); // bitshift by 6 to get value in pixels (2^6 = 64)
+            TextX += (ch.Advance >> 6) * (Scale / std::max(SCR_WIDTH, (unsigned)1)); // bitshift by 6 to get value in pixels (2^6 = 64)
         }
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_BLEND);
     }
 
-    float GetStringScreenWidth()
+    float GetWidth()
     {
         float StringWidth = 0.0f;
         std::string::const_iterator c;
         for (c = String.begin(); c != String.end(); c++)
         {
             Character ch = TextFont->Characters[*c];
-            float w = ch.Size.x * (Scale / SCR_WIDTH);
-            float space = (ch.Advance >> 6) * (Scale / SCR_WIDTH);
+            float w = ch.Size.x * (Scale / std::max(SCR_WIDTH,(unsigned)1));
+            float space = (ch.Advance >> 6) * (Scale / std::max(SCR_WIDTH, (unsigned)1));
             StringWidth += space;
         }
         return StringWidth;
     }
-    float GetStringScreenHeight()
+    float GetHeight()
     {
         float StringHeight = 0.0f;
         std::string::const_iterator c;
@@ -237,7 +241,7 @@ public:
     }
     float GetConstHeight()
     {
-        return (0.06f * Scale) * (SCR_WIDTH / std::max(SCR_HEIGHT,(unsigned int)1));
+        return TextFont->PxHeight * (Scale / SCR_HEIGHT);
     }
 };
 
@@ -293,25 +297,23 @@ public:
     }
 };
 
-struct RectButton;
+extern float MousePosX, MousePosY;
 
-struct ButtonManager
+struct Mouse_Status
 {
-    vector<RectButton*> Buttons;
-
-    void AddButton(RectButton* button)
-    {
-        Buttons.push_back(button);
-    }
+    int Left;
+    int Right;
+    int Middle;
 };
 
-ButtonManager buttonmanager;
+Mouse_Status Mouse_Input_Status;
 
 struct RectButton
 {
     float Width = 0, Height = 0;
     float xPos = 0, yPos = 0;
     bool PRESSED = false;
+    bool Toggle = false;
 
     RectButton(float x, float y, float width, float height) {
         xPos = x; yPos = y;
@@ -327,9 +329,9 @@ struct RectButton
 
         bool inxrange = ((x >= xmin) && (x <= xmax));
         bool inyrange = ((y >= ymin) && (y <= ymax));
-        cout << "pressed at position: " << x << ", " << y << endl;
-        cout << "x button range" << xmin << "to" << xmax << endl;
-        cout << "y button range" << ymin << "to" << ymax << endl;
+        //cout << "pressed at position: " << x << ", " << y << endl;
+        //cout << "x button range" << xmin << "to" << xmax << endl;
+        //cout << "y button range" << ymin << "to" << ymax << endl;
         if (inxrange && inyrange)
         {
             PRESSED = true;
@@ -337,9 +339,33 @@ struct RectButton
         }
         return false;
     }
+    bool CheckLeftMouse()
+    {
+        if(!Toggle)
+        Reset();
+        
+        if (Mouse_Input_Status.Left == GLFW_PRESS)
+        {
+            //cout << "CLICK" << endl;
+            return CheckButton(MousePosX, MousePosY);
+        }
+        return false;
+    }
+    bool CheckRightMouse()
+    {
+        if (!Toggle)
+            Reset();
+
+        if (Mouse_Input_Status.Right == GLFW_PRESS)
+        {
+            //cout << "RIGHT CLICK" << endl;
+            return CheckButton(MousePosX, MousePosY);
+        }
+        return false;
+    }
     void Reset()
     {
-        cout << "reseting button..." << endl;
+        //cout << "reseting button..." << endl;
         PRESSED = false;
     }
 };
@@ -368,7 +394,6 @@ public:
         Width = width;
         Height = 0.06f * InputText.Scale;
         Button = RectButton(x, y, width, Height);
-        buttonmanager.AddButton(&Button);
     }
     InputTextBox(Font* font, vec3 textcolor, vec3 boxcolor, 
         float scale, float x, float y, float width)
@@ -387,7 +412,7 @@ public:
     {
         string fullstring = InputText.String;
 
-        while (Width < InputText.GetStringScreenWidth())
+        while (Width < InputText.GetWidth())
         {
             InputText.String.erase(0,1);
         }
@@ -395,7 +420,7 @@ public:
 
         if (Active)InputBox.Draw(boxshader, xPos - 0.008f, yPos - 0.008f, Width + 0.005f, InputText.GetConstHeight() + 0.01f, vec3(1.0f) - BoxColor);
         InputBox.Draw(boxshader, xPos - 0.005f, yPos - 0.005f, Width, InputText.GetConstHeight(), BoxColor);
-        InputText.Draw(&textshader, yPos, xPos);
+        InputText.Draw(textshader, xPos, yPos);
 
         InputText.String = fullstring;
     }
@@ -410,11 +435,10 @@ public:
     
     void Update()
     {
+        Button.CheckLeftMouse();
         if (Button.PRESSED)
         {
-            cout << "activated itb" << endl;
             MakeActive();
-            Button.Reset();
         }
     }
 };
@@ -422,12 +446,12 @@ public:
 class TextButton
 {
     SolidRectangle Rect;
-    Text ButtonText;
     vec3 Color;
     float xPos, yPos;
     float Width, Height;
 public:
     RectButton Button;
+    Text ButtonText;
 
     TextButton(string buttontext, vec3 textcolor, Font* textfont, float textscale,
         vec3 buttoncolor,float x, float y, float width, float height)
@@ -440,22 +464,77 @@ public:
         yPos = y;
         Width = width;
         Height = height;
-        buttonmanager.AddButton(&Button);
     }
 
     void Draw(Shader rectshader, Shader textshader)
     {
         string fullstring = ButtonText.String;
 
-        while (Width < ButtonText.GetStringScreenWidth())
+        while (Width < ButtonText.GetWidth())
         {
            ButtonText.String.erase(0, 1);
         }
         
         if (Button.PRESSED)Rect.Draw(rectshader, xPos - 0.005f, yPos - 0.005f, Width + 0.01f, Height + 0.01f, vec3(1.0f) - Color);
         Rect.Draw(rectshader,xPos,yPos,Width,Height, Color);
-        ButtonText.Draw(&textshader, xPos + (Width / 2) - (ButtonText.GetStringScreenWidth() / 2), yPos + (Height / 2) - (ButtonText.GetConstHeight() / 2));
+        ButtonText.Draw(textshader, xPos + (Width / 2) - (ButtonText.GetWidth() / 2), yPos + (Height / 2) - (ButtonText.GetConstHeight() / 2));
 
         ButtonText.String = fullstring;
+    }
+};
+
+struct TextTable 
+{
+    SolidRectangle Rect;
+    RectButton Button;
+    vec3 Color;
+    unsigned int Segments = 0;
+    vector<Text> Texts;
+    float xPos, yPos;
+    float Width, Height;
+    Font* TextFont;
+
+    TextTable(Font* font, float x, float y, float width, float height, vec3 rectcolor = vec3(1.0f,1.0f,1.0f))
+    {
+        xPos = x;
+        yPos = y;
+        Width = width;
+        Height = height;
+        Color = rectcolor;
+        Rect.SetUpRect();
+        TextFont = font;
+        Button = RectButton(xPos, yPos, Width, Height);
+    }
+
+    void AddTextSegment(string textstring, vec3 textcolor, float scale)
+    {
+        Segments++;
+        Texts.push_back(Text(textstring, TextFont, textcolor, scale));
+    }
+
+    int Draw(Shader rectshader, Shader textshader)
+    {
+        if (Button.PRESSED)Rect.Draw(rectshader, xPos - 0.005f, yPos - 0.005f, Width + 0.01f, Height + 0.01f, vec3(1.0f,1.0f,1.0f) - Color);
+        Rect.Draw(rectshader, xPos, yPos, Width, Height, Color);
+        vector<float> SegmentPoses;
+        if (Segments == 0)return -1;//stop divide by zero
+        for (int i = 0; i < Segments; i++)
+        {
+            SegmentPoses.push_back(0.005f + xPos + (Width / (float)Segments) * i);
+        }
+        
+        for (int i = 0; i < Texts.size();i++)
+        {
+            string fullstring = Texts[i].String;
+
+            while (Texts[i].GetWidth() > (Width / Segments))
+            {
+                Texts[i].String.erase(0, 1);
+            }
+            
+            Texts[i].Draw(textshader, SegmentPoses[i],0.005f + yPos);
+            Texts[i].String = fullstring;
+        }
+        return 0;
     }
 };
