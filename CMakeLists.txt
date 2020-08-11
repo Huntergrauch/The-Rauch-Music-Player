@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(WINLIBS glfw3 opengl32 freetype soundio) 
+set(WINLIBS glfw3 opengl32 freetype soundio)
+set(LINLIBS libsoundio.a libpulse.so libglfw.so GL libdl.so libfreetype.so libfreetype.a X11 pthread) 
 set(SRCFILES Program.cpp stb_image.cpp glad.c)
 
 # set the project name
@@ -13,17 +14,7 @@ add_executable(The_Rauch_Audio_Player ${SRCFILES})
 
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
     message("Building for Linux")
-    find_package(Freetype REQUIRED)
-    find_package(glfw3 REQUIRED)
-    find_package(soundio REQUIRED)
-    find_package(id3v2 REQUIRED)
-    target_include_directories(The_Rauch_Audio_Player PRIVATE ${FREETYPE_INCLUDE_DIRS})
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${FREETYPE_LIBRARIES})
-    target_include_directories(The_Rauch_Audio_Player PRIVATE ${GLFW3_INCLUDE_DIRS})
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${GLFW3_LIBRARIES})
-    target_include_directories(The_Rauch_Audio_Player PRIVATE ${SOUNDIO_INCLUDE_DIRS})
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${SOUNDIO_LIBRARIES})
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE X11 dl GL)
+    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${LINLIBS})
 elseif(WIN32)
     message("Building for Windows")
     target_link_libraries(The_Rauch_Audio_Player PRIVATE ${WINLIBS})
