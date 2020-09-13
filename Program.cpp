@@ -674,8 +674,8 @@ int main()
 		glfwPollEvents();
 	}
 	library.Save("./Resources/Playlists/rootlib.rauchplaylist");
-	glfwTerminate();
 	font.DeleteFont();
+	glfwTerminate();
 	DeinitializeAudio();
 }
 

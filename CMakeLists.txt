@@ -18,15 +18,17 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
 elseif(WIN32)
     message("Building for Windows")
     target_link_libraries(Rauch_Music_Player PRIVATE ${WINLIBS})
+    # make windows application, no console
+    set_target_properties(Rauch_Music_Player PROPERTIES 
+    LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
 else()
     message( FATAL_ERROR "Unsupported platform." )
 endif()
 
-target_compile_definitions(Rauch_Music_Player PRIVATE SOUNDIO_STATIC_LIBRARY=1)
+# use C++17
+target_compile_features(Rauch_Music_Player PRIVATE cxx_std_17)
 
-# make windows application, no console
-set_target_properties(Rauch_Music_Player PROPERTIES 
-    LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
+target_compile_definitions(Rauch_Music_Player PRIVATE SOUNDIO_STATIC_LIBRARY=1)
 
 # add the binary tree to the search path for include files
 target_include_directories(Rauch_Music_Player PUBLIC

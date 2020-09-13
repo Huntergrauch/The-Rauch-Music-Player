@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named The_Rauch_Audio_Player
+# Target rules for targets named Rauch_Music_Player
 
 # Build rule for target.
-The_Rauch_Audio_Player: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 The_Rauch_Audio_Player
-.PHONY : The_Rauch_Audio_Player
+Rauch_Music_Player: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Rauch_Music_Player
+.PHONY : Rauch_Music_Player
 
 # fast build rule for target.
-The_Rauch_Audio_Player/fast:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/build
-.PHONY : The_Rauch_Audio_Player/fast
+Rauch_Music_Player/fast:
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/build
+.PHONY : Rauch_Music_Player/fast
 
 Program.o: Program.cpp.o
 
@@ -129,7 +129,7 @@ Program.o: Program.cpp.o
 
 # target to build an object file
 Program.cpp.o:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/Program.cpp.o
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/Program.cpp.o
 .PHONY : Program.cpp.o
 
 Program.i: Program.cpp.i
@@ -138,7 +138,7 @@ Program.i: Program.cpp.i
 
 # target to preprocess a source file
 Program.cpp.i:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/Program.cpp.i
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/Program.cpp.i
 .PHONY : Program.cpp.i
 
 Program.s: Program.cpp.s
@@ -147,7 +147,7 @@ Program.s: Program.cpp.s
 
 # target to generate assembly for a file
 Program.cpp.s:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/Program.cpp.s
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/Program.cpp.s
 .PHONY : Program.cpp.s
 
 glad.o: glad.c.o
@@ -156,7 +156,7 @@ glad.o: glad.c.o
 
 # target to build an object file
 glad.c.o:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/glad.c.o
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/glad.c.o
 .PHONY : glad.c.o
 
 glad.i: glad.c.i
@@ -165,7 +165,7 @@ glad.i: glad.c.i
 
 # target to preprocess a source file
 glad.c.i:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/glad.c.i
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/glad.c.i
 .PHONY : glad.c.i
 
 glad.s: glad.c.s
@@ -174,7 +174,7 @@ glad.s: glad.c.s
 
 # target to generate assembly for a file
 glad.c.s:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/glad.c.s
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/glad.c.s
 .PHONY : glad.c.s
 
 stb_image.o: stb_image.cpp.o
@@ -183,7 +183,7 @@ stb_image.o: stb_image.cpp.o
 
 # target to build an object file
 stb_image.cpp.o:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/stb_image.cpp.o
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/stb_image.cpp.o
 .PHONY : stb_image.cpp.o
 
 stb_image.i: stb_image.cpp.i
@@ -192,7 +192,7 @@ stb_image.i: stb_image.cpp.i
 
 # target to preprocess a source file
 stb_image.cpp.i:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/stb_image.cpp.i
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/stb_image.cpp.i
 .PHONY : stb_image.cpp.i
 
 stb_image.s: stb_image.cpp.s
@@ -201,7 +201,7 @@ stb_image.s: stb_image.cpp.s
 
 # target to generate assembly for a file
 stb_image.cpp.s:
-	$(MAKE) -f CMakeFiles/The_Rauch_Audio_Player.dir/build.make CMakeFiles/The_Rauch_Audio_Player.dir/stb_image.cpp.s
+	$(MAKE) -f CMakeFiles/Rauch_Music_Player.dir/build.make CMakeFiles/Rauch_Music_Player.dir/stb_image.cpp.s
 .PHONY : stb_image.cpp.s
 
 # Help Target
@@ -212,7 +212,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... The_Rauch_Audio_Player"
+	@echo "... Rauch_Music_Player"
 	@echo "... Program.o"
 	@echo "... Program.i"
 	@echo "... Program.s"

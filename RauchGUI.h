@@ -101,11 +101,9 @@ public:
     //unallocate gpu memory associated with font's textures
     void DeleteFont()
     {
-        map<char, Character>::iterator it;
-
-        for (it = Characters.begin(); it != Characters.end(); it++)
+        for( auto const& [key, val] : Characters )
         {
-            glDeleteTextures(1, &it->second.TextureID);
+            glDeleteTextures(1, &val.TextureID);
         }
     }
 };
