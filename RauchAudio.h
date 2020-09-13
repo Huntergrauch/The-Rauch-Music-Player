@@ -1,3 +1,6 @@
+//This file was written by Hunter Rauch for facilitating Audio loading and playback
+//Uses libsoundio, Audiofile.h, minimp3, and dr flac libraries
+
 #pragma once
 #include "soundio/soundio.h"
 #include "AudioFile.h"
@@ -26,6 +29,7 @@ std::string GetFileExtension(const std::string& FileName)
 }
 
 struct SoundIoOutStream* outstream;
+//struct for storing Audio
 struct Audio
 {
 	unsigned int SamplesPerChannel = 0;
@@ -37,11 +41,12 @@ struct Audio
     bool Looping = false;
     bool Completed = false;
 
+    //returns the sample rate of Audio
     unsigned int GetSampleRate()
     {
         return SampleRate;
     }
-
+    //loads Audio from file at path. Supported file types: mp3, wav, flac.
     int Load(const char* path)
     {
         const std::string pathstring(path);
@@ -148,7 +153,7 @@ struct Audio
 };
 
 Audio ActiveAudio;
-
+//callback for playing audio, used by libsoundio
 static void write_callback(struct SoundIoOutStream* outstream,
     int frame_count_min, int frame_count_max)
 {
@@ -205,6 +210,7 @@ static void write_callback(struct SoundIoOutStream* outstream,
 
 struct SoundIoDevice* device;
 SoundIo* soundio;
+//initialize libsoundio and create outstream using default device, then starts outstream
 void InitializeAudio()
 {
     soundio = soundio_create();
@@ -229,12 +235,14 @@ void InitializeAudio()
     soundio_outstream_start(outstream);
 }
 
+//switches the currently playing audio to  Audio specified by parameter "audio"
 void StartAudio(Audio audio)
 {
     ActiveAudio = audio;
     outstream->sample_rate = ActiveAudio.GetSampleRate();
 }
 
+//destroys Audio objects and deinitializes libsoundio
 void DeinitializeAudio()
 {
     soundio_outstream_destroy(outstream);

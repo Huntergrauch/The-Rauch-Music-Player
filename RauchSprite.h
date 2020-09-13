@@ -1,3 +1,6 @@
+//This file was written by Hunter Rauch for drawing images with OpenGL
+//Uses glfw, glm, and glad libraries
+
 #pragma once
 #include "glad/glad.h" //OpenGL Function Pointer Library
 #include "stb_image.h"
@@ -7,6 +10,7 @@
 #include <vector>
 #include "Shader.h"
 
+//Vertex Data for sprites
 struct SpriteVertex {
 	vec3 Position;
 	vec2 TextureCoords;
@@ -17,6 +21,7 @@ class SpriteRenderer;
 
 extern unsigned int SCR_WIDTH, SCR_HEIGHT;
 
+//Class storing image data
 class Sprite
 {
 public:
@@ -25,11 +30,14 @@ public:
 	int Format;
 	unsigned int VAO, VBO;
 
+	//Creates sprite object and fills its data from image file at parameter spritePath
 	Sprite(const char* spritePath)
 	{
 		Load(spritePath);
 	}
+	//Creates empty sprite object
 	Sprite() = default;
+	//Loads image data from file specified at parameter spritePath
 	void Load(const char* spritePath)
 	{
 		stbi_set_flip_vertically_on_load(false);
@@ -60,12 +68,14 @@ public:
 		stbi_image_free(data); //free data for image created with stbi
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	//Unallocates GPU memory associated with Sprite
 	void Delete()
 	{
 		glDeleteTextures(1, &textureID);
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
 	}
+	//Allocates GPU memory for Sprite and sets up it's VAO
 	void SetUpSprite()
 	{
 		glGenVertexArrays(1, &VAO);
@@ -86,24 +96,30 @@ public:
 	}
 };
 
+//Class for drawing sprites on screen,
+//draws Sprite in Propery RenderSprite.
+//(Sprites are Scaled according to the size of the screen
+//to maintain their aspect ratio)
 class SpriteRenderer
 {
 public:
 	Sprite RenderSprite;
 
+	//Creates SpriteRenderer Object and sets RenderSprite as Sprite in parameter sprite.
 	SpriteRenderer(Sprite sprite)
 	{
 		SwitchSprite(sprite);
 	}
+	//Creates Empty SpriteRenderer Object.
 	SpriteRenderer() = default;
 
+	//Sets RenderSprite as Sprite in parameter sprite.
 	void SwitchSprite(Sprite sprite)
 	{
-		//RenderSprite.Delete();
 		RenderSprite = sprite;
 		RenderSprite.SetUpSprite();
 	}
-
+	//Draws RenderSprite using specified Shader at specified location and scale.
 	void Draw(Shader shader, float xPos, float yPos, float Scale)
 	{
 		shader.use();

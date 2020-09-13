@@ -1,3 +1,7 @@
+//This file was written by Hunter Rauch for rudimentary GUI with OpenGL
+//Uses glfw, glm, glad, and freetype libraries
+//Also Uses Shader.h file
+
 #pragma once
 #include "ft2build.h" //font library
 #include FT_FREETYPE_H
@@ -13,6 +17,7 @@
 using namespace glm;
 using namespace std;
 
+//struct for storing information about a font's letters
 struct Character {
 
 	unsigned int TextureID;
@@ -21,6 +26,7 @@ struct Character {
 	unsigned int Advance;
 };
 
+//struct for storing information about a font
 class Font {
 
 public:
@@ -32,7 +38,7 @@ public:
     {
         Load(fontPath);
     }
-
+    //load a font from file
 	void Load(const char* fontPath)
 	{
         cout << "FreeType loading Font..." << endl;
@@ -92,12 +98,14 @@ public:
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
 	}
-
+    //unallocate gpu memory associated with font's textures
     void DeleteFont()
     {
-        for (int i = 0; i < Characters.size();i++)
+        map<char, Character>::iterator it;
+
+        for (it = Characters.begin(); it != Characters.end(); it++)
         {
-            glDeleteTextures(1,&Characters.at(i).TextureID);
+            glDeleteTextures(1, &it->second.TextureID);
         }
     }
 };
@@ -108,20 +116,10 @@ struct TextVertex {
     vec2 TextureCoords;
 };
 
-class Text; //Text Forward Declaration
-
-struct TextManager
-{
-    vector<Text*> Texts;
-
-    void AddText(Text* text)
-    {
-        Texts.push_back(text);
-    }
-};
-
 extern unsigned int SCR_WIDTH, SCR_HEIGHT;
 
+//class for drawing text on the screen using the Font class
+//(Text is scaled according to screen to not stretch font)
 class Text
 {
 public:
@@ -209,7 +207,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_BLEND);
     }
-
+    //get the width of the text onscreen in NDC units
     float GetWidth()
     {
         float StringWidth = 0.0f;
@@ -223,6 +221,7 @@ public:
         }
         return StringWidth;
     }
+    //get the height of the text onscreen in NDC units
     float GetHeight()
     {
         float StringHeight = 0.0f;
@@ -239,12 +238,15 @@ public:
         
         return StringHeight;
     }
+    //get max height of text in NDC units
     float GetConstHeight()
     {
         return TextFont->PxHeight * (Scale / SCR_HEIGHT);
     }
 };
 
+//class for drawing a solid color rectangle on the screen
+//(SolidRectangle is NOT scaled according to the size of the screen like Text)
 class SolidRectangle {
 
     unsigned int VAO, VBO;
@@ -299,6 +301,7 @@ public:
 
 extern float MousePosX, MousePosY;
 
+//struct for storing information about the mouses current location
 struct Mouse_Status
 {
     int Left;
@@ -308,6 +311,7 @@ struct Mouse_Status
 
 Mouse_Status Mouse_Input_Status;
 
+//struct for detecting mouse input on a certain rectangle on the screen
 struct RectButton
 {
     float Width = 0, Height = 0;
@@ -315,10 +319,13 @@ struct RectButton
     bool PRESSED = false;
     bool Toggle = false;
 
+    //creates RectButton object to check for clicks in a rectangle at parameters x and y,
+    //and with a width of parameters width and height
     RectButton(float x, float y, float width, float height) {
         xPos = x; yPos = y;
         Width = width; Height = height;
     }
+    //default RectButton constructor. Creates empty object.
     RectButton() = default;
     bool CheckButton(float x, float y)
     {
@@ -329,9 +336,7 @@ struct RectButton
 
         bool inxrange = ((x >= xmin) && (x <= xmax));
         bool inyrange = ((y >= ymin) && (y <= ymax));
-        //cout << "pressed at position: " << x << ", " << y << endl;
-        //cout << "x button range" << xmin << "to" << xmax << endl;
-        //cout << "y button range" << ymin << "to" << ymax << endl;
+
         if (inxrange && inyrange)
         {
             PRESSED = true;
@@ -339,6 +344,8 @@ struct RectButton
         }
         return false;
     }
+    //Returns true if the left mouse is currently pressed and the cursor is in the rectangle
+    //defined by xPos, yPos, width, and height. Otherwise returns false.
     bool CheckLeftMouse()
     {
         if(!Toggle)
@@ -346,11 +353,12 @@ struct RectButton
         
         if (Mouse_Input_Status.Left == GLFW_PRESS)
         {
-            //cout << "CLICK" << endl;
             return CheckButton(MousePosX, MousePosY);
         }
         return false;
     }
+    //Returns true if the right mouse is currently pressed and the cursor is in the rectangle
+    //defined by xPos, yPos, width, and height. Otherwise returns false.
     bool CheckRightMouse()
     {
         if (!Toggle)
@@ -358,14 +366,14 @@ struct RectButton
 
         if (Mouse_Input_Status.Right == GLFW_PRESS)
         {
-            //cout << "RIGHT CLICK" << endl;
             return CheckButton(MousePosX, MousePosY);
         }
         return false;
     }
+    //resets the buttons PRESSED property. Call every frame for one press buttons,
+    //call only once at click for toggleable button.
     void Reset()
     {
-        //cout << "reseting button..." << endl;
         PRESSED = false;
     }
 };
@@ -373,6 +381,7 @@ struct RectButton
 class InputTextBox;
 InputTextBox* ActiveInputTextBox;
 
+//Class for drawing a box on the screen to display text, that when active, will be changed by keyboard input.
 class InputTextBox
 {
 public:
@@ -383,18 +392,8 @@ public:
     bool Active = false;
     float xPos = 0, yPos = 0;
     float Width = 0, Height = 0;
-
-    InputTextBox(Font* font, vec3 textcolor, 
-        float scale, float x, float y, float width)
-    {
-        InputText = Text("", font, textcolor, scale);
-        InputBox.SetUpRect();
-        xPos = x;
-        yPos = y;
-        Width = width;
-        Height = 0.06f * InputText.Scale;
-        Button = RectButton(x, y, width, Height);
-    }
+    
+    //Creates Box InputTextBox with specified values.
     InputTextBox(Font* font, vec3 textcolor, vec3 boxcolor, 
         float scale, float x, float y, float width)
     {
@@ -407,7 +406,9 @@ public:
         Height = 0.06f * InputText.Scale;
         Button = RectButton(x, y, width, Height);
     }
+    //default InputTextBox constructor. Creates empty InputTextBox object.
     InputTextBox() = default;
+    //Draws InputTextBox using specified Shaders
     void Draw(Shader textshader, Shader boxshader)
     {
         string fullstring = InputText.String;
@@ -424,7 +425,8 @@ public:
 
         InputText.String = fullstring;
     }
-    
+    //Sets this InputTextBox as the active InputTextBox, there can only be one at a time.
+    //ActiveInputTextBox starts as nullptr.
     void MakeActive()
     {
         if(ActiveInputTextBox != nullptr)
@@ -432,7 +434,8 @@ public:
         ActiveInputTextBox = this;
         Active = true;
     }
-    
+    //this checks if the InputTextBox is clicked on using the RectButton struct
+    //if it is clicked on this function calls MakeActive().
     void Update()
     {
         Button.CheckLeftMouse();
@@ -443,6 +446,7 @@ public:
     }
 };
 
+//class for Drawing a button on screen that can be clicked on and has text on it
 class TextButton
 {
     SolidRectangle Rect;
@@ -453,6 +457,7 @@ public:
     RectButton Button;
     Text ButtonText;
 
+    //Creates a TextButton object with specified parameters.
     TextButton(string buttontext, vec3 textcolor, Font* textfont, float textscale,
         vec3 buttoncolor,float x, float y, float width, float height)
     {
@@ -465,7 +470,7 @@ public:
         Width = width;
         Height = height;
     }
-
+    //Draws TextButton with specified shader.
     void Draw(Shader rectshader, Shader textshader)
     {
         string fullstring = ButtonText.String;
@@ -483,7 +488,8 @@ public:
     }
 };
 
-struct TextTable 
+//Struct for drawing rows of a table that are clickable and can be split into different parts each with its own Text.
+struct TextTableRow 
 {
     SolidRectangle Rect;
     RectButton Button;
@@ -494,7 +500,8 @@ struct TextTable
     float Width, Height;
     Font* TextFont;
 
-    TextTable(Font* font, float x, float y, float width, float height, vec3 rectcolor = vec3(1.0f,1.0f,1.0f))
+    //Creates TextTable row with specified parameters.
+    TextTableRow(Font* font, float x, float y, float width, float height, vec3 rectcolor = vec3(1.0f,1.0f,1.0f))
     {
         xPos = x;
         yPos = y;
@@ -505,13 +512,13 @@ struct TextTable
         TextFont = font;
         Button = RectButton(xPos, yPos, Width, Height);
     }
-
+    //Adds a Segment to the TextTableRow.
     void AddTextSegment(string textstring, vec3 textcolor, float scale)
     {
         Segments++;
         Texts.push_back(Text(textstring, TextFont, textcolor, scale));
     }
-
+    //Draws the TextTableRow using the specified parameters.
     int Draw(Shader rectshader, Shader textshader)
     {
         if (Button.PRESSED)Rect.Draw(rectshader, xPos - 0.005f, yPos - 0.005f, Width + 0.01f, Height + 0.01f, vec3(1.0f,1.0f,1.0f) - Color);
@@ -538,3 +545,38 @@ struct TextTable
         return 0;
     }
 };
+
+extern InputTextBox* ActiveInputTextBox;
+unsigned int ITB_BackspaceStatus = 0, ITB_LeftStatus = 0, ITB_RightStatus = 0;
+//Process input for the InputTextBox
+void process_GUI_input(GLFWwindow* window)
+{
+    //backspace ability on input boxes
+    if (ITB_BackspaceStatus == 0 && (glfwGetKey(window, GLFW_KEY_BACKSPACE)
+        == GLFW_PRESS) && ActiveInputTextBox->InputText.String.size() > 0
+        && ActiveInputTextBox != nullptr)
+    {
+        ActiveInputTextBox->InputText.String.pop_back();
+        ITB_BackspaceStatus++;
+    }
+    if (ITB_BackspaceStatus > 0)
+    {
+        ITB_BackspaceStatus++;
+    }
+    if (ITB_BackspaceStatus > 24)
+    {
+        ITB_BackspaceStatus = 0;
+    }
+}
+
+ //character callback for input text boxes
+ //use with GLFW function glfwSetCharCallback()
+void character_callback(GLFWwindow* window, unsigned int codepoint)
+{
+    if (ActiveInputTextBox != nullptr)
+    {
+        string codestring;
+        codestring = codepoint;
+        ActiveInputTextBox->InputText.String += codestring;
+    }
+}

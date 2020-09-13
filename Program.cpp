@@ -3,7 +3,6 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "stb_image.h"
-#include "RauchInput.h"
 #include "RauchGUI.h"
 #include <glm/glm.hpp> //OpenGl Math Library
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,11 +10,20 @@
 #include <portable-file-dialogs.h>
 #include <fstream>
 #include "RauchSprite.h"
+#include <filesystem>
 
+namespace fs = std::filesystem;
 
 //forward declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void UpdateTime();
+void process_input(GLFWwindow* window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void mouse_position_callback(GLFWwindow* window, double xpos, double ypos);
+
+double YScrollOffset = 0;
 
 unsigned int SCR_WIDTH = 1024;
 unsigned int SCR_HEIGHT = 1024;
@@ -25,6 +33,7 @@ bool PressedPause = false;
 bool PressedLoop = false;
 bool PressedShuffle = false;
 
+//struct for storing info about individual songs
 struct Song
 {
 	string Path;
@@ -42,6 +51,7 @@ struct Song
 	Song() = default;
 };
 
+//struct for storing info about multiple songs and their file paths as a file.
 struct Playlist
 {
 	vector<Song> Songs;
@@ -51,46 +61,58 @@ struct Playlist
 	Song& operator [](int i) { return Songs[i]; }
 	int scrollnum = 0;
 
+	//load a playlist file by path
 	int Load(const char* path)
 	{
 		string stringpath(path);
 		std::ifstream file(stringpath);
-		std::string line;
-		while (std::getline(file, line)) {
-			
-			int pathbegnum = (line.find("<path>") + 6);
-			int pathendnum = (line.find("</path>"));
 
-			int titlebegnum = (line.find("<title>") + 7);
-			int titleendnum = (line.find("</title>"));
+		if (file.is_open())
+		{
+			std::string line;
+			while (std::getline(file, line)) {
 
-			int artistbegnum = (line.find("<artist>") + 8);
-			int artistendnum = (line.find("</artist>"));
+				int pathbegnum = (line.find("<path>") + 6);
+				int pathendnum = (line.find("</path>"));
 
-			int albumbegnum = (line.find("<album>") + 7);
-			int albumendnum = (line.find("</album>"));
-			
-			string foundpath;
-			string foundtitle;
-			string foundartist;
-			string foundalbum;
-			
-			foundpath = line.substr(pathbegnum, pathendnum - pathbegnum);
-			foundtitle = line.substr(titlebegnum, titleendnum - titlebegnum);
-			foundartist = line.substr(artistbegnum, artistendnum - artistbegnum);
-			foundalbum = line.substr(albumbegnum, albumendnum - albumbegnum);
-			
-			AddSong(Song(foundpath, foundtitle, foundartist, foundalbum));
-			
-			//cout << "path read: " << foundpath << endl;
-			//cout << "path title: " << foundtitle << endl;
-			//cout << "path artist: " << foundartist << endl;
-			//cout << "path album: " << foundalbum << endl;
+				int titlebegnum = (line.find("<title>") + 7);
+				int titleendnum = (line.find("</title>"));
 
+				int artistbegnum = (line.find("<artist>") + 8);
+				int artistendnum = (line.find("</artist>"));
+
+				int albumbegnum = (line.find("<album>") + 7);
+				int albumendnum = (line.find("</album>"));
+
+				string foundpath;
+				string foundtitle;
+				string foundartist;
+				string foundalbum;
+
+				foundpath = line.substr(pathbegnum, pathendnum - pathbegnum);
+				foundtitle = line.substr(titlebegnum, titleendnum - titlebegnum);
+				foundartist = line.substr(artistbegnum, artistendnum - artistbegnum);
+				foundalbum = line.substr(albumbegnum, albumendnum - albumbegnum);
+
+				AddSong(Song(foundpath, foundtitle, foundartist, foundalbum));
+
+				//cout << "path read: " << foundpath << endl;
+				//cout << "path title: " << foundtitle << endl;
+				//cout << "path artist: " << foundartist << endl;
+				//cout << "path album: " << foundalbum << endl;
+
+			}
+			file.close();
+			return 0;
 		}
-		file.close();
-		return 0;
+		else
+		{
+			
+			cout << "cout not load library at path: " << stringpath << endl;
+			return -1;
+		}
 	}
+	//save playlist at path
 	int Save(const char* path)
 	{
 		string pathstring(path);
@@ -111,10 +133,11 @@ struct Playlist
 		}
 		else
 		{
-			cout << "Unable to open file";
+			cout << "Unable to save file at path: " << path << endl;
 			return -1;
 		}
 	}
+	//add song to playlist
 	int AddSong(Song song)
 	{
 		for (int i = 0; i < Songs.size();i++)
@@ -129,14 +152,17 @@ struct Playlist
 	}
 };
 
+//sorting function
 bool CompareTitles(Song a, Song b)
 {
 	return (a.Title < b.Title);
 }
+//sorting function
 bool CompareArtists(Song a, Song b)
 {
 	return (a.Artist < b.Artist);
 }
+//sorting function
 bool CompareAlbums(Song a, Song b)
 {
 	return (a.Album < b.Album);
@@ -154,18 +180,17 @@ int main()
 
 
 	//GLFW Window Creation
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "The Rauch Audio Player", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "The Rauch Music Player", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW Window" << std::endl;
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	GLFWimage images[2];
+	GLFWimage images[1];
 	int width, height;
-	images[0].pixels = stbi_load("./Resources/Textures/TetraLogo.png", &images[0].width, &images[0].height, 0, 4);
-	images[1].pixels = stbi_load("./Resources/Textures/TetraLogoSmall.png", &images[1].width, &images[1].height, 0, 4);
-	glfwSetWindowIcon(window, 2, images);
+	images[0].pixels = stbi_load("./Resources/Textures/Logo.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
 
 
 	//GLAD initilization
@@ -184,20 +209,6 @@ int main()
 	glfwMaximizeWindow(window);
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
 
-	//find limits of current system and write them to output
-	int nrAttributes, maxTextureUnits, maxVertexTextureUnits, maxTextureLayers, maxTextureSize;
-	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxVertexTextureUnits);
-	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxTextureLayers);
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-	std::cout << "OpenGL GPU limits on this system: " << endl
-		<< "Maximum number of vertex attributes supported: " << nrAttributes << std::endl;
-	std::cout << "Maximum number of fragment texture units supported: " << maxTextureUnits << std::endl;
-	std::cout << "Maximum number of vertex texture units supported: " << maxVertexTextureUnits << std::endl;
-	std::cout << "Maximum number of Texture Layers: " << maxTextureLayers << endl;
-	std::cout << "Maximum Texture Size: " << maxTextureSize << endl;
-
 	//rendering settings
 
 	//Enable Blending
@@ -215,7 +226,7 @@ int main()
 	vec3 ThemeColor = vec3(0.25f,0.875f,0.8125f);
 
 	Font font("./Resources/Fonts/NotoSans-Regular.ttf");
-	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f), 1.5f, -0.99f, 0.6f, 0.75f);
+	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f),vec3(1.0f,1.0f,1.0f), 1.5f, -0.99f, 0.6f, 0.75f);
 	//TextButton submitbutton("Library", vec3(0.0f), &font,1.0f,ThemeColor * vec3(0.8f), 
 		//-1.0f, 0.7f, 0.24f, 0.09f);
 	TextButton addbutton("Add File", vec3(0.0f), &font, 1.0f, ThemeColor * vec3(0.8f),
@@ -227,14 +238,22 @@ int main()
 	titlerect.SetUpRect();
 
 	Playlist library;
-	library.Load("./Resources/Playlists/rootlib.rauchplaylist");
+	int libfound = library.Load("./Resources/Playlists/rootlib.rauchplaylist");
 
-	TextTable tablelegend(&font, -0.95f, 0.5f, 1.9f, 0.09f, ThemeColor * vec3(0.8f));
+	if (libfound != 0)
+	{
+
+		cout << "could not find playlist folder, so one was created" << endl;
+		fs::create_directories("./Resources/Playlists");
+
+	}
+
+	TextTableRow tablelegend(&font, -0.95f, 0.5f, 1.9f, 0.09f, ThemeColor * vec3(0.8f));
 	tablelegend.AddTextSegment("Title/Path", vec3(0.0f, 0.0f, 0.0f), 0.6f);
 	tablelegend.AddTextSegment("Album", vec3(0.0f, 0.0f, 0.0f), 0.6f);
 	tablelegend.AddTextSegment("Artist", vec3(0.0f, 0.0f, 0.0f), 0.6f);
 	
-	vector<TextTable> entrytable;
+	vector<TextTableRow> entrytable;
 	bool needupdatelib = true;
 	InitializeAudio();
 	int sortmode = 0;
@@ -260,10 +279,13 @@ int main()
 	bool Shuffle = false;
 	bool Looping = false;
 
+	int menu_grace = 0;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		UpdateTime();
 		process_input(window);
+		process_GUI_input(window);
 		//UPDATESOUND;
 		
 		if (PressedPause == true)
@@ -427,7 +449,7 @@ int main()
 		//cout << library.scrollnum << endl;
 		if (needupdatelib)
 		{
-			vector<TextTable> emptyttable;
+			vector<TextTableRow> emptyttable;
 			entrytable.swap(emptyttable);
 			for (int i = 0; i < library.Songs.size();i++)
 			{
@@ -446,7 +468,7 @@ int main()
 				{
 					albumstring = library[i].Album;
 				}
-				entrytable.push_back(TextTable(&font, -0.95f, 0.4f - (i * 0.1f) - (library.scrollnum * 0.1f), 1.9f, 0.09f, ThemeColor * vec3(0.9f)));
+				entrytable.push_back(TextTableRow(&font, -0.95f, 0.4f - (i * 0.1f) - (library.scrollnum * 0.1f), 1.9f, 0.09f, ThemeColor * vec3(0.9f)));
 
 				entrytable[i].AddTextSegment(entrystring, vec3(0.0f, 0.0f, 0.0f), 0.6f);
 				entrytable[i].AddTextSegment(albumstring, vec3(0.0f, 0.0f, 0.0f), 0.6f);
@@ -478,7 +500,7 @@ int main()
 		for (int i = 0; i < entrytable.size();i++)
 		{
 			Audio newaudio;
-			if (entrytable[i].Button.CheckLeftMouse() && (entrytable[i].yPos < 0.5 && entrytable[i].yPos > -0.9f))
+			if (menu_grace == 0 && entrytable[i].Button.CheckLeftMouse() && (entrytable[i].yPos < 0.5 && entrytable[i].yPos > -0.9f))
 			{
 				if (newaudio.Load(library[i].Path.c_str()) == 0)
 				{
@@ -515,6 +537,7 @@ int main()
 				while (!cancelled && !removed && !done && !glfwWindowShouldClose(window))
 				{
 					process_input(window);
+					process_GUI_input(window);
 					if (DoneButton.Button.CheckLeftMouse())
 					{
 						done = true;
@@ -561,14 +584,18 @@ int main()
 				{
 					library.Songs.erase(library.Songs.begin() + i);
 				}
+				menu_grace = 30;
 				needupdatelib = true;
 			}
 		}
 
+		if(menu_grace > 0)
+		{ 
+			menu_grace--;
+		}
 		
 		if (addbutton.Button.CheckLeftMouse())
 		{
-			
 			cout << "added song with path: " << inputtext.InputText.String.c_str() << endl;
 			Audio newaudio;
 			if (newaudio.Load(inputtext.InputText.String.c_str()) == 0)
@@ -582,6 +609,7 @@ int main()
 				inputtext.InputText.String = "Submitted File Invalid";
 			}
 			addbutton.Button.Reset();
+			library.Save("./Resources/Playlists/rootlib.rauchplaylist");
 		}
 
 		if (browse)
@@ -605,6 +633,7 @@ int main()
 			}
 			needupdatelib = true;
 			browse = false;
+			library.Save("./Resources/Playlists/rootlib.rauchplaylist");
 		}
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
@@ -668,4 +697,70 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	SCR_HEIGHT = height;
 	SCR_WIDTH = width;
 
+}
+float lastMouseX = (float)SCR_WIDTH / 2.0;
+float lastMouseY = (float)SCR_HEIGHT / 2.0;
+bool firstusedmouse = true;
+float MousePosX = 0;
+float MousePosY = 0;
+
+void mouse_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	MousePosX = ((float)xpos / (float)(SCR_WIDTH / 2)) - 1;
+	MousePosY = ((float)(SCR_HEIGHT - ypos) / (float)(SCR_HEIGHT / 2)) - 1;
+}
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		Mouse_Input_Status.Left = action;
+	}
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+	{
+		Mouse_Input_Status.Middle = action;
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	{
+		Mouse_Input_Status.Right = action;
+	}
+}
+
+void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+
+	YScrollOffset += yoffset;
+	//cout << yoffset << YScrollOffset <<  endl;
+}
+
+void process_input(GLFWwindow* window)
+{
+	//closing window with escape
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+	//browse for file
+	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+	{
+		browse = true;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_PAUSE) == GLFW_PRESS)
+	{
+		PressedPause = true;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS)
+	{
+		PressedShuffle = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+	{
+		PressedLoop = true;
+	}
 }

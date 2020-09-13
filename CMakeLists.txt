@@ -5,27 +5,31 @@ set(LINLIBS libsoundio.a libpulse.so libglfw.so GL libdl.so libfreetype.so libfr
 set(SRCFILES Program.cpp stb_image.cpp glad.c)
 
 # set the project name
-project(The_Rauch_Audio_Player)
-message("The_Rauch_Audio_Player")
+project(Rauch_Music_Player)
+message("The Rauch Music Player")
 link_directories(${PROJECT_SOURCE_DIR}/Dependencies/Libs)
 
 # add the executable
-add_executable(The_Rauch_Audio_Player ${SRCFILES})
+add_executable(Rauch_Music_Player ${SRCFILES})
 
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
     message("Building for Linux")
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${LINLIBS})
+    target_link_libraries(Rauch_Music_Player PRIVATE ${LINLIBS})
 elseif(WIN32)
     message("Building for Windows")
-    target_link_libraries(The_Rauch_Audio_Player PRIVATE ${WINLIBS})
+    target_link_libraries(Rauch_Music_Player PRIVATE ${WINLIBS})
 else()
     message( FATAL_ERROR "Unsupported platform." )
 endif()
 
-target_compile_definitions(The_Rauch_Audio_Player PRIVATE SOUNDIO_STATIC_LIBRARY=1)
+target_compile_definitions(Rauch_Music_Player PRIVATE SOUNDIO_STATIC_LIBRARY=1)
+
+# make windows application, no console
+set_target_properties(Rauch_Music_Player PROPERTIES 
+    LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
 
 # add the binary tree to the search path for include files
-target_include_directories(The_Rauch_Audio_Player PUBLIC
+target_include_directories(Rauch_Music_Player PUBLIC
                           ${PROJECT_BINARY_DIR}
                           ${PROJECT_SOURCE_DIR}/Dependencies/Include
                           )

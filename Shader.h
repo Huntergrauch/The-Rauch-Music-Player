@@ -1,3 +1,7 @@
+//This file was written by Hunter Rauch for OpenGL Shaders
+//Uses glad, and glm libraries
+//Is used by RauchGUI.h and RauchSprite.h
+
 //preprocessor directive to make sure header is only compiled once
 #ifndef SHADER_H
 #define SHADER_H
@@ -15,6 +19,7 @@
 using namespace std;
 using namespace glm;
 
+//class for storing OpenGL Shader Data
 class Shader
 
 {
@@ -33,6 +38,7 @@ public:
 		
 
 		//make sure streams can throw exceptions
+		//only on windows
 #ifdef _WIN32
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
@@ -98,6 +104,7 @@ public:
 		ifstream geometryStream;
 
 		//make sure streams can throw exceptions
+		//only on windows
 #ifdef _WIN32
 		vertexStream.exceptions(ifstream::failbit || ifstream::badbit);
 		fragmentStream.exceptions(ifstream::failbit || ifstream::badbit);
