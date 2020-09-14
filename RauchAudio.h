@@ -77,23 +77,17 @@ struct Audio
             file.unsetf(std::ios::skipws);
             std::istream_iterator<uint8_t> begin(file), end;
             std::vector<uint8_t> fileData(begin, end);
-            cout << "decoding file..." << endl;
             int decodeerror = mp3dec_load_buf(&mp3d, (const uint8_t*)fileData.data(), fileData.size(), &info, 0, 0);
             if (decodeerror != 0)
             {
                 cout << "failed to decode file" << endl;
                 return -1;
             }
-            cout << "done decoding file" << endl;
             file.close();
            // cout << info.hz;
             
             SampleRate = info.hz;
             outstream->layout.channel_count = info.channels;
-            cout << "Number of Samples: " <<info.samples << endl
-            << "Sample Rate: " << info.hz << "hz" << endl
-            << "Number of Channels: " << info.channels << endl
-            << "loading samples..." << endl;
             for (int c = 0; c < info.channels;c++)
             {
                 vector<float> empty;
@@ -104,7 +98,6 @@ struct Audio
                     Samples[c].push_back(info.buffer[s]);
                 }
             }
-            cout << "done loading samples" << endl;
             SamplesPerChannel = Samples[0].size();
             ChannelCount = Samples.size();
             free(info.buffer);
@@ -119,7 +112,6 @@ struct Audio
                 // Failed to open and decode FLAC file.
                 return 0;
             }
-            cout << "total flac frames: "<< totalPCMFrameCount  << ". Number of Channels: "<< channels << endl;
             for (int c = 0; c < channels;c++)
             {
                 vector<float> empty;

@@ -41,14 +41,13 @@ public:
     //load a font from file
 	void Load(const char* fontPath)
 	{
-        cout << "FreeType loading Font..." << endl;
         FT_Library ft;
         if (FT_Init_FreeType(&ft))
-            std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+            std::cout << "Could not init FreeType Library" << std::endl;
 
         FT_Face face;
         if (FT_New_Face(ft, fontPath, 0, &face))
-            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+            std::cout << "Failed to load font" << std::endl;
 
         FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -94,7 +93,6 @@ public:
             Characters.insert(std::pair<char, Character>(c, character));
         }
         PxHeight = *max_element(heights.begin(),heights.end());
-        cout << "Font Loaded" << endl;
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
 	}
@@ -241,6 +239,7 @@ public:
     {
         return TextFont->PxHeight * (Scale / SCR_HEIGHT);
     }
+    //unallocates GPU memory of Text
     void Delete()
     {
         glDeleteVertexArrays(1, &VAO);
@@ -300,6 +299,7 @@ public:
 
         glBindVertexArray(0);
     }
+    //Deletes GPU memory of SolidRectangle
     void Delete()
     {
         glDeleteVertexArrays(1, &VAO);
@@ -452,6 +452,7 @@ public:
             MakeActive();
         }
     }
+    //unallocates GPU memory associated with InputTextBox
     void Delete()
     {
         InputText.Delete();
@@ -499,6 +500,7 @@ public:
 
         ButtonText.String = fullstring;
     }
+    //unallocates GPU memory associated with TextButton
     void Delete()
     {
         Rect.Delete();
@@ -562,6 +564,7 @@ struct TextTableRow
         }
         return 0;
     }
+    //unallocate GPU memory associated with TextTableRow
     void Delete()
     {
         Rect.Delete();
@@ -573,27 +576,41 @@ struct TextTableRow
 
 };
 
+extern float deltaTime;
+unsigned int BackspaceWaitTime = 132;
 extern InputTextBox* ActiveInputTextBox;
-unsigned int ITB_BackspaceStatus = 0, ITB_LeftStatus = 0, ITB_RightStatus = 0;
+unsigned int ITB_BackspaceWait = 0;
+bool backspacestatus = false;
 //Process input for the InputTextBox
 void process_GUI_input(GLFWwindow* window)
 {
+    bool lastbackspacestatus= backspacestatus;
+    backspacestatus = glfwGetKey(window, GLFW_KEY_BACKSPACE);
+    
     //backspace ability on input boxes
-    if (ITB_BackspaceStatus == 0 && (glfwGetKey(window, GLFW_KEY_BACKSPACE)
-        == GLFW_PRESS) && ActiveInputTextBox->InputText.String.size() > 0
-        && ActiveInputTextBox != nullptr)
+    if (backspacestatus && !lastbackspacestatus && !ActiveInputTextBox->InputText.String.empty())
     {
         ActiveInputTextBox->InputText.String.pop_back();
-        ITB_BackspaceStatus++;
+        ITB_BackspaceWait = 1;
     }
-    if (ITB_BackspaceStatus > 0)
+    else if (backspacestatus && lastbackspacestatus)
     {
-        ITB_BackspaceStatus++;
+        if (ITB_BackspaceWait == 0 && !ActiveInputTextBox->InputText.String.empty())
+        {
+            ActiveInputTextBox->InputText.String.pop_back();
+            ITB_BackspaceWait = 1;
+        }
+        if (ITB_BackspaceWait > 0)
+        {
+            ITB_BackspaceWait++;
+        }
+        if (ITB_BackspaceWait > (BackspaceWaitTime * deltaTime))
+        {
+            ITB_BackspaceWait = 0;
+        }
     }
-    if (ITB_BackspaceStatus > 24)
-    {
-        ITB_BackspaceStatus = 0;
-    }
+
+    
 }
 
  //character callback for input text boxes

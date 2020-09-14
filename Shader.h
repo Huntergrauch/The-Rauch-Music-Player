@@ -45,7 +45,6 @@ public:
 #endif
 		try
 		{
-			cout << "reading shaders..." << endl;
 			//open vertex and fragment shader code files from paths
 			vertexStream.open(vertexShaderPath);
 			fragmentStream.open(fragmentShaderPath);
@@ -80,7 +79,6 @@ public:
 
 		//finally create Shader Program and Attach our two vertex and fragment Shaders
 		ID = glCreateProgram();
-		cout << "constructing shader program with ID " << ID << "..." << endl;
 		glAttachShader(ID, vShader);
 		glAttachShader(ID, fShader);
 		glLinkProgram(ID);
@@ -112,7 +110,6 @@ public:
 #endif
 		try
 		{
-			cout << "reading shaders..." << endl;
 			//open vertex and fragment shader code files from paths
 			vertexStream.open(vertexShaderPath);
 			fragmentStream.open(fragmentShaderPath);
@@ -157,7 +154,6 @@ public:
 
 		//finally create Shader Program and Attach our two vertex and fragment Shaders
 		ID = glCreateProgram();
-		cout << "constructing shader program with ID " << ID << "..." << endl;
 		glAttachShader(ID, vShader);
 		glAttachShader(ID, fShader);
 		glAttachShader(ID, gShader);

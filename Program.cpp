@@ -28,6 +28,10 @@ double YScrollOffset = 0;
 unsigned int SCR_WIDTH = 1024;
 unsigned int SCR_HEIGHT = 1024;
 
+float currentTime = 0.0f;
+float lastTime = 0.0f;
+float deltaTime = 0.0f;
+
 bool browse = false;
 bool PressedPause = false;
 bool PressedLoop = false;
@@ -95,19 +99,12 @@ struct Playlist
 				foundalbum = line.substr(albumbegnum, albumendnum - albumbegnum);
 
 				AddSong(Song(foundpath, foundtitle, foundartist, foundalbum));
-
-				//cout << "path read: " << foundpath << endl;
-				//cout << "path title: " << foundtitle << endl;
-				//cout << "path artist: " << foundartist << endl;
-				//cout << "path album: " << foundalbum << endl;
-
 			}
 			file.close();
 			return 0;
 		}
 		else
 		{
-			
 			cout << "cout not load library at path: " << stringpath << endl;
 			return -1;
 		}
@@ -168,6 +165,45 @@ bool CompareAlbums(Song a, Song b)
 	return (a.Album < b.Album);
 }
 
+vec3 ThemeColor = vec3(0.25f, 0.875f, 0.8125f);
+//function to read settings file
+void ReadSettings()
+{
+	std::ifstream file("./Settings.txt");
+
+	if (file.is_open())
+	{
+		std::string line;
+		while (std::getline(file, line))
+		{
+			int themecolorR = (line.find("R=") + 2);
+			int themecolorG = (line.find("G=") + 2);
+			int themecolorB = (line.find("B=") + 2);
+
+			string themecolorRstring, themecolorGstring, themecolorBstring, backspacespeedstring;
+
+			if (themecolorR != -1 + 2)
+			{
+				themecolorRstring = line.substr(themecolorR, line.size() - 1);
+				cout << "R: " << themecolorRstring << endl;
+				ThemeColor.r = std::stof(themecolorRstring);
+			}
+			else if (themecolorG != -1 + 2)
+			{
+				themecolorGstring = line.substr(themecolorG, line.size() - 1);
+				cout << "G: " << themecolorGstring << endl;
+				ThemeColor.g = std::stof(themecolorGstring);
+			}
+			else if (themecolorB != -1 + 2)
+			{
+				themecolorBstring = line.substr(themecolorB, line.size() - 1);
+				cout << "B: " << themecolorBstring << endl;
+				ThemeColor.b = std::stof(themecolorBstring);
+			}
+		}
+	}
+}
+
 int main()
 {
 	
@@ -180,7 +216,7 @@ int main()
 
 
 	//GLFW Window Creation
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "The Rauch Music Player", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Rauch Music Player", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW Window" << std::endl;
@@ -223,14 +259,14 @@ int main()
 	Shader SpriteShader("./Shaders/VertexShader2D.vert", "./Shaders/FragmentShader2D.frag");
 	Shader ControlShader("./Shaders/controls.vert", "./Shaders/controls.frag");
 
-	vec3 ThemeColor = vec3(0.25f,0.875f,0.8125f);
+	ReadSettings();
 
 	Font font("./Resources/Fonts/NotoSans-Regular.ttf");
 	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f),vec3(1.0f,1.0f,1.0f), 1.5f, -0.99f, 0.6f, 0.75f);
-	//TextButton submitbutton("Library", vec3(0.0f), &font,1.0f,ThemeColor * vec3(0.8f), 
-		//-1.0f, 0.7f, 0.24f, 0.09f);
 	TextButton addbutton("Add File", vec3(0.0f), &font, 1.0f, ThemeColor * vec3(0.8f),
 		-0.24f, 0.6f, 0.24f, 0.09f);
+	TextButton browsebutton("Browse for file(s)", vec3(0.0f), &font, 0.75f, ThemeColor * vec3(0.8f),
+		0.01f, 0.6f, 0.24f, 0.09f);;
 
 	SolidRectangle rect; 
 	SolidRectangle titlerect;
@@ -242,10 +278,7 @@ int main()
 
 	if (libfound != 0)
 	{
-
-		cout << "could not find playlist folder, so one was created" << endl;
 		fs::create_directories("./Resources/Playlists");
-
 	}
 
 	TextTableRow tablelegend(&font, -0.95f, 0.5f, 1.9f, 0.09f, ThemeColor * vec3(0.8f));
@@ -620,7 +653,6 @@ int main()
 		
 		if (addbutton.Button.CheckLeftMouse())
 		{
-			cout << "added song with path: " << inputtext.InputText.String.c_str() << endl;
 			Audio newaudio;
 			if (newaudio.Load(inputtext.InputText.String.c_str()) == 0)
 			{
@@ -634,6 +666,12 @@ int main()
 			}
 			addbutton.Button.Reset();
 			library.Save("./Resources/Playlists/rootlib.rauchplaylist");
+		}
+
+		if (browsebutton.Button.CheckLeftMouse())
+		{
+			browse = true;
+			browsebutton.Button.Reset();
 		}
 
 		if (browse)
@@ -666,11 +704,9 @@ int main()
 
 		rect.Draw(RectShader, -1.0f, -1.0f, 2.0f, 1.8f, ThemeColor);
 		titlerect.Draw(RectShader, -1.0f, 0.8f, 2.0f, 0.2f, ThemeColor * vec3(0.8f));
-		
 		inputtext.Draw(TextShader, RectShader);
-		//submitbutton.Draw(RectShader, TextShader);
 		addbutton.Draw(RectShader, TextShader);
-		
+		browsebutton.Draw(RectShader, TextShader);
 		tablelegend.Draw(RectShader, TextShader);
 		for (int i = 0; i < entrytable.size();i++)
 		{
@@ -713,6 +749,7 @@ int main()
 	rect.Delete();
 	titlerect.Delete();
 	font.Delete();
+	browsebutton.Delete();
 	for (int i = 0; i < entrytable.size();i++)
 	{
 		entrytable[i].Delete();
@@ -722,9 +759,6 @@ int main()
 	DeinitializeAudio();
 }
 
-float currentTime = 0.0f;
-float lastTime = 0.0f;
-float deltaTime = 0.0f;
 //update the timer
 void UpdateTime()
 {
