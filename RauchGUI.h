@@ -576,8 +576,7 @@ struct TextTableRow
 
 };
 
-extern float deltaTime;
-unsigned int BackspaceWaitTime = 132;
+unsigned int BackspaceWaitTime = 10;
 extern InputTextBox* ActiveInputTextBox;
 unsigned int ITB_BackspaceWait = 0;
 bool backspacestatus = false;
@@ -604,7 +603,7 @@ void process_GUI_input(GLFWwindow* window)
         {
             ITB_BackspaceWait++;
         }
-        if (ITB_BackspaceWait > (BackspaceWaitTime * deltaTime))
+        if (ITB_BackspaceWait > BackspaceWaitTime)
         {
             ITB_BackspaceWait = 0;
         }
