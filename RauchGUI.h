@@ -99,7 +99,7 @@ public:
         FT_Done_FreeType(ft);
 	}
     //unallocate gpu memory associated with font's textures
-    void DeleteFont()
+    void Delete()
     {
         for( auto const& [key, val] : Characters )
         {
@@ -241,6 +241,11 @@ public:
     {
         return TextFont->PxHeight * (Scale / SCR_HEIGHT);
     }
+    void Delete()
+    {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+    }
 };
 
 //class for drawing a solid color rectangle on the screen
@@ -294,6 +299,11 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glBindVertexArray(0);
+    }
+    void Delete()
+    {
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
     }
 };
 
@@ -442,6 +452,11 @@ public:
             MakeActive();
         }
     }
+    void Delete()
+    {
+        InputText.Delete();
+        InputBox.Delete();
+    }
 };
 
 //class for Drawing a button on screen that can be clicked on and has text on it
@@ -483,6 +498,11 @@ public:
         ButtonText.Draw(textshader, xPos + (Width / 2) - (ButtonText.GetWidth() / 2), yPos + (Height / 2) - (ButtonText.GetConstHeight() / 2));
 
         ButtonText.String = fullstring;
+    }
+    void Delete()
+    {
+        Rect.Delete();
+        ButtonText.Delete();
     }
 };
 
@@ -542,6 +562,15 @@ struct TextTableRow
         }
         return 0;
     }
+    void Delete()
+    {
+        Rect.Delete();
+        for (int i = 0; i < Texts.size();i++)
+        {
+            Texts[i].Delete();
+        }
+    }
+
 };
 
 extern InputTextBox* ActiveInputTextBox;

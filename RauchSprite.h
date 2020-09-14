@@ -94,6 +94,26 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
+
+	bool IsSpriteClicked(bool clicked, float mousex, float mousey, float xPos, float yPos, float Scale)
+	{
+		float Width = (width * Scale) / (float)SCR_WIDTH;
+		float Height = (height * Scale) / (float)SCR_HEIGHT;
+
+		float xmin = xPos;
+		float ymin = yPos;
+		float xmax = xPos + Width;
+		float ymax = yPos + Height;
+
+		bool inxrange = ((mousex >= xmin) && (mousex <= xmax));
+		bool inyrange = ((mousey >= ymin) && (mousey <= ymax));
+
+		if (inxrange && inyrange && clicked)
+		{
+			return true;
+		}
+		return false;
+	}
 };
 
 //Class for drawing sprites on screen,

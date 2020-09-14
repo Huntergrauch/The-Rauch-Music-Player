@@ -281,6 +281,10 @@ int main()
 
 	int menu_grace = 0;
 
+	bool pauseclick = false;
+	bool shuffleclick = false;
+	bool loopclick = false;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		UpdateTime();
@@ -288,7 +292,16 @@ int main()
 		process_GUI_input(window);
 		//UPDATESOUND;
 		
-		if (PressedPause == true)
+		bool lastpauseclick = pauseclick;
+		pauseclick = PauseRenderer.RenderSprite.IsSpriteClicked(Mouse_Input_Status.Left == GLFW_PRESS, MousePosX, MousePosY, -0.5f, 0.85f, 0.25f);
+
+		bool lastshuffleclick = shuffleclick;
+		shuffleclick = ShuffleRenderer.RenderSprite.IsSpriteClicked(Mouse_Input_Status.Left == GLFW_PRESS, MousePosX, MousePosY, -0.4f, 0.85f, 0.25f);
+		
+		bool lastloopclick = loopclick;
+		loopclick = ShuffleRenderer.RenderSprite.IsSpriteClicked(Mouse_Input_Status.Left == GLFW_PRESS, MousePosX, MousePosY, -0.45f, 0.85f, 0.25f);
+		
+		if (PressedPause == true || (pauseclick && !lastpauseclick))
 		{
 			bool paused = false;
 			if (ActiveAudio.Samples.size() > 0)
@@ -310,22 +323,22 @@ int main()
 			cout << prefix << "paused" << endl;
 			PressedPause = false;
 		}
-		if (PressedShuffle && !Shuffle)
+		if (((shuffleclick && !lastshuffleclick) || PressedShuffle) && !Shuffle)
 		{
 			Shuffle = true;
 			PressedShuffle = false;
 		}
-		else if (PressedShuffle && Shuffle)
+		else if (((shuffleclick && !lastshuffleclick) || PressedShuffle) && Shuffle)
 		{
 			Shuffle = false;
 			PressedShuffle = false;
 		}
-		if (PressedLoop && !Looping)
+		if (((loopclick && !lastloopclick) || PressedLoop) && !Looping)
 		{
 			Looping = true;
 			PressedLoop = false;
 		}
-		else if (PressedLoop && Looping)
+		else if (((loopclick && !lastloopclick) || PressedLoop) && Looping)
 		{
 			Looping = false;
 			PressedLoop = false;
@@ -584,6 +597,17 @@ int main()
 				{
 					library.Songs.erase(library.Songs.begin() + i);
 				}
+
+				path.Delete();
+				artist.Delete();
+				album.Delete();
+				DoneButton.Delete();
+				CancelButton.Delete();
+				RemoveButton.Delete();
+				SongName.Delete();
+				SongArtist.Delete();
+				SongAlbum.Delete();
+
 				menu_grace = 30;
 				needupdatelib = true;
 			}
@@ -674,7 +698,26 @@ int main()
 		glfwPollEvents();
 	}
 	library.Save("./Resources/Playlists/rootlib.rauchplaylist");
-	font.DeleteFont();
+	
+	//delete all graphical objects
+	PausedSprite.Delete();
+	PauseSprite.Delete();
+	LoopingSprite.Delete();
+	ShuffleSprite.Delete();
+	tablelegend.Delete();
+	SongStatusRect.Delete();
+	inputtext.Delete();
+	ActiveSongPath.Delete();
+	ActiveSongTitle.Delete();
+	addbutton.Delete();
+	rect.Delete();
+	titlerect.Delete();
+	font.Delete();
+	for (int i = 0; i < entrytable.size();i++)
+	{
+		entrytable[i].Delete();
+	}
+
 	glfwTerminate();
 	DeinitializeAudio();
 }
