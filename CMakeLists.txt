@@ -32,6 +32,7 @@ target_compile_features(Rauch_Music_Player PRIVATE cxx_std_17)
 target_compile_definitions(Rauch_Music_Player PRIVATE SOUNDIO_STATIC_LIBRARY=1)
 
 if(LinInstall)
+    message("Building for Linux installation")
     target_compile_definitions(Rauch_Music_Player PRIVATE LINUX_INSTALL=1)
 endif()
 

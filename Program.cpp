@@ -38,11 +38,14 @@ bool PressedLoop = false;
 bool PressedShuffle = false;
 
 
-string RESOURCES_PATH = "./rmpResources";
 //if building to install on linux, you must use an absolute path.
 #ifdef LINUX_INSTALL
 
-RESOURCES_PATH = "/usr/local/share/rmpResources";
+string RESOURCES_PATH = "/usr/local/share/rmpResources";
+
+#else
+
+string RESOURCES_PATH = "./rmpResources";
 
 #endif
 
@@ -114,7 +117,6 @@ struct Playlist
 		}
 		else
 		{
-			cout << "cout not load library at path: " << stringpath << endl;
 			return -1;
 		}
 	}
