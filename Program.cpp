@@ -225,7 +225,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	GLFWimage images[1];
 	int width, height;
-	images[0].pixels = stbi_load("./Resources/Textures/Logo.png", &images[0].width, &images[0].height, 0, 4);
+	images[0].pixels = stbi_load("./rmpResources/Textures/Logo.png", &images[0].width, &images[0].height, 0, 4);
 	glfwSetWindowIcon(window, 1, images);
 
 
@@ -254,14 +254,14 @@ int main()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_SCISSOR_TEST);
 	
-	Shader TextShader("./Shaders/VertexShaderText.vert", "./Shaders/FragmentShaderText.frag");
-	Shader RectShader("./Shaders/VertexShaderRect.vert", "./Shaders/FragmentShaderRect.frag");
-	Shader SpriteShader("./Shaders/VertexShader2D.vert", "./Shaders/FragmentShader2D.frag");
-	Shader ControlShader("./Shaders/controls.vert", "./Shaders/controls.frag");
+	Shader TextShader("./rmpResources/Shaders/VertexShaderText.vert", "./rmpResources/Shaders/FragmentShaderText.frag");
+	Shader RectShader("./rmpResources/Shaders/VertexShaderRect.vert", "./rmpResources/Shaders/FragmentShaderRect.frag");
+	Shader SpriteShader("./rmpResources/Shaders/VertexShader2D.vert", "./rmpResources/Shaders/FragmentShader2D.frag");
+	Shader ControlShader("./rmpResources/Shaders/controls.vert", "./rmpResources/Shaders/controls.frag");
 
 	ReadSettings();
 
-	Font font("./Resources/Fonts/NotoSans-Regular.ttf");
+	Font font("./rmpResources/Fonts/NotoSans-Regular.ttf");
 	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f),vec3(1.0f,1.0f,1.0f), 1.5f, -0.99f, 0.6f, 0.75f);
 	TextButton addbutton("Add File", vec3(0.0f), &font, 1.0f, ThemeColor * vec3(0.8f),
 		-0.24f, 0.6f, 0.24f, 0.09f);
@@ -274,11 +274,11 @@ int main()
 	titlerect.SetUpRect();
 
 	Playlist library;
-	int libfound = library.Load("./Resources/Playlists/rootlib.rauchplaylist");
+	int libfound = library.Load("./rmpResources/Playlists/rootlib.rauchplaylist");
 
 	if (libfound != 0)
 	{
-		fs::create_directories("./Resources/Playlists");
+		fs::create_directories("./rmpResources/Playlists");
 	}
 
 	TextTableRow tablelegend(&font, -0.95f, 0.5f, 1.9f, 0.09f, ThemeColor * vec3(0.8f));
@@ -301,10 +301,10 @@ int main()
 	SongStatusRect.SetUpRect();
 	float SongStatus = 0.0f;
 
-	Sprite PausedSprite("./Resources/Textures/Play.png");
-	Sprite PauseSprite("./Resources/Textures/Pause.png");
-	Sprite LoopingSprite("./Resources/Textures/Loop.png");
-	Sprite ShuffleSprite("./Resources/Textures/Shuffle.png");
+	Sprite PausedSprite("./rmpResources/Textures/Play.png");
+	Sprite PauseSprite("./rmpResources/Textures/Pause.png");
+	Sprite LoopingSprite("./rmpResources/Textures/Loop.png");
+	Sprite ShuffleSprite("./rmpResources/Textures/Shuffle.png");
 	SpriteRenderer PauseRenderer(PauseSprite);
 	SpriteRenderer LoopingRenderer(LoopingSprite);
 	SpriteRenderer ShuffleRenderer(ShuffleSprite);
@@ -665,7 +665,7 @@ int main()
 				inputtext.InputText.String = "Submitted File Invalid";
 			}
 			addbutton.Button.Reset();
-			library.Save("./Resources/Playlists/rootlib.rauchplaylist");
+			library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
 		}
 
 		if (browsebutton.Button.CheckLeftMouse())
@@ -695,7 +695,7 @@ int main()
 			}
 			needupdatelib = true;
 			browse = false;
-			library.Save("./Resources/Playlists/rootlib.rauchplaylist");
+			library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
 		}
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
@@ -733,7 +733,7 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	library.Save("./Resources/Playlists/rootlib.rauchplaylist");
+	library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
 	
 	//delete all graphical objects
 	PausedSprite.Delete();
