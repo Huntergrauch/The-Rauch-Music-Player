@@ -37,6 +37,15 @@ bool PressedPause = false;
 bool PressedLoop = false;
 bool PressedShuffle = false;
 
+
+string RESOURCES_PATH = "./rmpResources";
+//if building to install on linux, you must use an absolute path.
+#ifdef LINUX_INSTALL
+
+RESOURCES_PATH = "/usr/local/share/rmpResources";
+
+#endif
+
 //struct for storing info about individual songs
 struct Song
 {
@@ -169,7 +178,7 @@ vec3 ThemeColor = vec3(0.25f, 0.875f, 0.8125f);
 //function to read settings file
 void ReadSettings()
 {
-	std::ifstream file("./Settings.txt");
+	std::ifstream file(RESOURCES_PATH + "./Settings.txt");
 
 	if (file.is_open())
 	{
@@ -204,7 +213,7 @@ void ReadSettings()
 	}
 }
 
-int main()
+int main(int argc, char** argv)
 {
 	
 	//GLFW initializtion
@@ -225,7 +234,8 @@ int main()
 	glfwMakeContextCurrent(window);
 	GLFWimage images[1];
 	int width, height;
-	images[0].pixels = stbi_load("./rmpResources/Textures/Logo.png", &images[0].width, &images[0].height, 0, 4);
+	string windowiconpath = RESOURCES_PATH + "/Textures/Logo.png";
+	images[0].pixels = stbi_load(windowiconpath.c_str(), &images[0].width, &images[0].height, 0, 4);
 	glfwSetWindowIcon(window, 1, images);
 
 
@@ -254,14 +264,20 @@ int main()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_SCISSOR_TEST);
 	
-	Shader TextShader("./rmpResources/Shaders/VertexShaderText.vert", "./rmpResources/Shaders/FragmentShaderText.frag");
-	Shader RectShader("./rmpResources/Shaders/VertexShaderRect.vert", "./rmpResources/Shaders/FragmentShaderRect.frag");
-	Shader SpriteShader("./rmpResources/Shaders/VertexShader2D.vert", "./rmpResources/Shaders/FragmentShader2D.frag");
-	Shader ControlShader("./rmpResources/Shaders/controls.vert", "./rmpResources/Shaders/controls.frag");
+	string TextShaderVertPath = RESOURCES_PATH + "/Shaders/Text.vert", TextShaderFragPath = RESOURCES_PATH + "/Shaders/Text.frag";
+	string RectShaderVertPath = RESOURCES_PATH + "/Shaders/Rect.vert", RectShaderFragPath = RESOURCES_PATH + "/Shaders/Rect.frag";
+	string SpriteShaderVertPath = RESOURCES_PATH + "/Shaders/Sprite.vert", SpriteShaderFragPath = RESOURCES_PATH + "/Shaders/Sprite.frag";
+	string ControlShaderVertPath = RESOURCES_PATH + "/Shaders/controls.vert", ControlShaderFragPath = RESOURCES_PATH + "/Shaders/controls.frag";
+
+	Shader TextShader(TextShaderVertPath.c_str(), TextShaderFragPath.c_str());
+	Shader RectShader(RectShaderVertPath.c_str(), RectShaderFragPath.c_str());
+	Shader SpriteShader(SpriteShaderVertPath.c_str(), SpriteShaderFragPath.c_str());
+	Shader ControlShader(ControlShaderVertPath.c_str(), ControlShaderFragPath.c_str());
 
 	ReadSettings();
 
-	Font font("./rmpResources/Fonts/NotoSans-Regular.ttf");
+	string fontpath = RESOURCES_PATH + "/Fonts/NotoSans-Regular.ttf";
+	Font font(fontpath.c_str());
 	InputTextBox inputtext(&font, vec3(0.0f, 0.0f, 0.0f),vec3(1.0f,1.0f,1.0f), 1.5f, -0.99f, 0.6f, 0.75f);
 	TextButton addbutton("Add File", vec3(0.0f), &font, 1.0f, ThemeColor * vec3(0.8f),
 		-0.24f, 0.6f, 0.24f, 0.09f);
@@ -274,11 +290,13 @@ int main()
 	titlerect.SetUpRect();
 
 	Playlist library;
-	int libfound = library.Load("./rmpResources/Playlists/rootlib.rauchplaylist");
+	string librarypath = RESOURCES_PATH + "/Playlists/rootlib.rauchplaylist";
+	int libfound = library.Load(librarypath.c_str());
 
 	if (libfound != 0)
 	{
-		fs::create_directories("./rmpResources/Playlists");
+		string playlistpath = RESOURCES_PATH + "/Playlists";
+		fs::create_directories(playlistpath);
 	}
 
 	TextTableRow tablelegend(&font, -0.95f, 0.5f, 1.9f, 0.09f, ThemeColor * vec3(0.8f));
@@ -291,9 +309,31 @@ int main()
 	InitializeAudio();
 	int sortmode = 0;
 	bool sorted = false;
+
+	Song ActiveSong;
+	//parse arguments
+	if (argc > 1)
+	{
+		if (argc > 3)
+		{
+			cout << "can't play more than one song, only playing first song" << endl;
+		}
+		Audio playaudio;
+		if (playaudio.Load(argv[2]) != 0)
+		{
+			Song playSong;
+			playSong.Path = argv[2];
+
+			StartAudio(playaudio);
+			ActiveSong = playSong;
+		}
+		else
+		{
+			cout << "can't play song at path: " << argv[2] << endl;
+		}
+	}
 	
 	unsigned int ActiveSongIndex = NULL;
-	Song ActiveSong;
 	ActiveSong.Path = "NO_ACTIVE_SONG";
 	Text ActiveSongPath("", &font, vec3(0.0f, 0.0f, 0.0f), 0.6f);
 	Text ActiveSongTitle("", &font, vec3(0.0f, 0.0f, 0.0f), 0.75f);
@@ -301,10 +341,14 @@ int main()
 	SongStatusRect.SetUpRect();
 	float SongStatus = 0.0f;
 
-	Sprite PausedSprite("./rmpResources/Textures/Play.png");
-	Sprite PauseSprite("./rmpResources/Textures/Pause.png");
-	Sprite LoopingSprite("./rmpResources/Textures/Loop.png");
-	Sprite ShuffleSprite("./rmpResources/Textures/Shuffle.png");
+	string PausedSpritePath = RESOURCES_PATH + "/Textures/Play.png";
+	string PauseSpritePath = RESOURCES_PATH + "/Textures/Pause.png";
+	string LoopingSpritePath = RESOURCES_PATH + "/Textures/Loop.png";
+	string ShuffleSpritePath = RESOURCES_PATH + "/Textures/Shuffle.png";
+	Sprite PausedSprite(PausedSpritePath.c_str());
+	Sprite PauseSprite(PauseSpritePath.c_str());
+	Sprite LoopingSprite(LoopingSpritePath.c_str());
+	Sprite ShuffleSprite(ShuffleSpritePath.c_str());
 	SpriteRenderer PauseRenderer(PauseSprite);
 	SpriteRenderer LoopingRenderer(LoopingSprite);
 	SpriteRenderer ShuffleRenderer(ShuffleSprite);
@@ -323,7 +367,6 @@ int main()
 		UpdateTime();
 		process_input(window);
 		process_GUI_input(window);
-		//UPDATESOUND;
 		
 		bool lastpauseclick = pauseclick;
 		pauseclick = PauseRenderer.RenderSprite.IsSpriteClicked(Mouse_Input_Status.Left == GLFW_PRESS, MousePosX, MousePosY, -0.5f, 0.85f, 0.25f);
@@ -665,7 +708,7 @@ int main()
 				inputtext.InputText.String = "Submitted File Invalid";
 			}
 			addbutton.Button.Reset();
-			library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
+			library.Save(librarypath.c_str());
 		}
 
 		if (browsebutton.Button.CheckLeftMouse())
@@ -695,7 +738,7 @@ int main()
 			}
 			needupdatelib = true;
 			browse = false;
-			library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
+			library.Save(librarypath.c_str());
 		}
 
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); //Set OpenGL Viewport Size
@@ -733,7 +776,7 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	library.Save("./rmpResources/Playlists/rootlib.rauchplaylist");
+	library.Save(librarypath.c_str());
 	
 	//delete all graphical objects
 	PausedSprite.Delete();

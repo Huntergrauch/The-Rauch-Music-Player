@@ -110,7 +110,7 @@ struct Audio
             float* pSampleData = drflac_open_file_and_read_pcm_frames_f32(pathstring.c_str(), &channels, &sampleRate, &totalPCMFrameCount, NULL);
             if (pSampleData == NULL) {
                 // Failed to open and decode FLAC file.
-                return 0;
+                return -1;
             }
             for (int c = 0; c < channels;c++)
             {
