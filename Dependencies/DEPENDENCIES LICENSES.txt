@@ -3,11 +3,11 @@ The Rauch Music Player uses multiple different third party libraries.
 The licenses for each one are written in this file along with URLs to 
 the websites (if there is one) with their licenses.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 GLAD LICENSE INFORMATION:
 https://github.com/Dav1dde/glad/blob/master/LICENSE
 
- "The MIT License (MIT)
+   "The MIT License (MIT)
 
     Copyright (c) 2013-2020 David Herberth
 
@@ -28,7 +28,7 @@ https://github.com/Dav1dde/glad/blob/master/LICENSE
     IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
     CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 GLFW LICENSE INFORMATION:
 https://www.glfw.org/license.html
@@ -36,15 +36,18 @@ https://www.glfw.org/license.html
   "Copyright © 2002-2006 Marcus Geelnard
     Copyright © 2006-2019 Camilla Löwy
 
-    This software is provided ‘as-is’, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
-    Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+    This software is provided ‘as-is’, without any express or implied warranty.
+    In no event will the authors be held liable for any damages arising from the use of this software.
+    Permission is granted to anyone to use this software for any purpose, including commercial applications,
+    and to alter it and redistribute it freely, subject to the following restrictions:
 
-    The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+    The origin of this software must not be misrepresented; you must not claim that you wrote the original software.
+    If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
     Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 
     This notice may not be removed or altered from any source distribution."
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 OPENGL MATH LICENSE INFORMATION:
 http://glm.g-truc.net/copying.txt
@@ -104,7 +107,7 @@ http://glm.g-truc.net/copying.txt
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE."
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 FREETYPE LICENSE INFORMATION:
 https://www.freetype.org/license.html
@@ -276,7 +279,7 @@ https://www.freetype.org/license.html
 
         https://www.freetype.org
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 LIBSOUNDIO LICENSE INFORMATION: 
 https://github.com/andrewrk/libsoundio/blob/master/LICENSE
@@ -303,7 +306,7 @@ https://github.com/andrewrk/libsoundio/blob/master/LICENSE
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 MINIMP3 LICENSE INFORMATION:
 https://github.com/lieff/minimp3/blob/master/LICENSE
@@ -425,7 +428,7 @@ https://github.com/lieff/minimp3/blob/master/LICENSE
     For more information, please see
     <http://creativecommons.org/publicdomain/zero/1.0/>
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 DR_FLAC LICENSE INFORMATION:
 (in header file)https://github.com/mackron/dr_libs/blob/master/dr_flac.h
@@ -448,7 +451,7 @@ DR_FLAC LICENSE INFORMATION:
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     For more information, please refer to <http://unlicense.org/>\
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 PORTABLE FILE DIALOGS LICENSSE INFORMATION:
 https://github.com/samhocevar/portable-file-dialogs/blob/master/COPYING
@@ -467,7 +470,7 @@ https://github.com/samhocevar/portable-file-dialogs/blob/master/COPYING
 
       0. You just DO WHAT THE FUCK YOU WANT TO.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 AUDIOFILE LICENSE INFORMATION:
 https://github.com/adamstark/AudioFile/blob/master/LICENSE
@@ -1147,4 +1150,27 @@ https://github.com/adamstark/AudioFile/blob/master/LICENSE
     Public License instead of this License.  But first, please read
     <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+
+STB IMAGE LICENSE INFORMATION:
+https://github.com/nothings/stb/blob/master/LICENSE
+
+    MIT License
+    Copyright (c) 2017 Sean Barrett
+    Permission is hereby granted, free of charge, to any person obtaining a copy of
+    this software and associated documentation files (the "Software"), to deal in
+    the Software without restriction, including without limitation the rights to
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+    of the Software, and to permit persons to whom the Software is furnished to do
+    so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+----------------------------------------------------------------------------------------------------

@@ -11,12 +11,13 @@ wav, mp3, and flac.
 Controls
 ----------------------
 
-Press TAB to open a OS-specific dialog to browse your systems files and select one or more files to add the the playlist.
+Press TAB or click the "Browse for File(s)" button to open a OS-specific dialog to browse your systems files and select one or more files to add the the playlist.
 Or click on the white input box, type the path to your chosen audio file, then click the "Add File" Button.
-Press CTRL to toggle Looping.
-Press ALT to toggle Shuffle.
+Press CTRL or click the looping icon to toggle looping.
+Press ALT or click the shuffle icon to toggle shuffle.
 Click on the header bar of the playlist to sort the playlist alphabetically by title, artist or album.
 Right click on a song in the playlist to edit it's data, such as its title, album or artist, or to delete the song from the playlist.
+Press the Pause key or click the Pause/Play icon to pause/unpause the currently playing song.
 
 Libraries Used
 ----------------------
@@ -47,3 +48,6 @@ https://www.freetype.org/
 
 glad
 https://github.com/Dav1dde/glad
+
+stb_image
+https://github.com/nothings/stb/blob/master/stb_image.h

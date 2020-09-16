@@ -41,11 +41,17 @@ bool PressedShuffle = false;
 //if building to install on linux, you must use an absolute path.
 #ifdef LINUX_INSTALL
 
-string RESOURCES_PATH = "/usr/local/share/rmpResources";
+const string RESOURCES_PATH = "/usr/local/share/rmpResources";
+
+#elif WINRELATIVE
+
+#include "Windows.h"
+
+string RESOURCES_PATH = "./rmpResources";
 
 #else
 
-string RESOURCES_PATH = "./rmpResources";
+const string RESOURCES_PATH = "./rmpResources";
 
 #endif
 
@@ -217,7 +223,22 @@ void ReadSettings()
 
 int main(int argc, char** argv)
 {
-	
+//if windows use GetModuleFileName to get
+//executable path as using a period such as
+//"./rmpResources" sometimes doesn't work if
+//the executable is being ran from somewhere else
+#ifdef WINRELATIVE
+
+	WCHAR exe_path[MAX_PATH];
+	GetModuleFileNameW(NULL, exe_path, MAX_PATH);
+
+	fs::path exe_Path(exe_path);
+
+	RESOURCES_PATH = exe_Path.parent_path().generic_string() + "/rmpResources";
+
+#endif
+
+
 	//GLFW initializtion
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -313,30 +334,30 @@ int main(int argc, char** argv)
 	bool sorted = false;
 
 	Song ActiveSong;
+	ActiveSong.Path = "NO_ACTIVE_SONG";
 	//parse arguments
 	if (argc > 1)
 	{
-		if (argc > 3)
+		if (argc > 2)
 		{
-			cout << "can't play more than one song, only playing first song" << endl;
+			cout << "can't play more than one song at a time, playing first song" << endl;
 		}
 		Audio playaudio;
-		if (playaudio.Load(argv[2]) != 0)
+		cout << "playing " << argv[1] << endl;
+		if (playaudio.Load(argv[1]) == 0)
 		{
-			Song playSong;
-			playSong.Path = argv[2];
+			Song playSong(argv[1]);
 
 			StartAudio(playaudio);
 			ActiveSong = playSong;
 		}
 		else
 		{
-			cout << "can't play song at path: " << argv[2] << endl;
+			cout << "can't play song at path: " << argv[1] << endl;
 		}
 	}
 	
 	unsigned int ActiveSongIndex = NULL;
-	ActiveSong.Path = "NO_ACTIVE_SONG";
 	Text ActiveSongPath("", &font, vec3(0.0f, 0.0f, 0.0f), 0.6f);
 	Text ActiveSongTitle("", &font, vec3(0.0f, 0.0f, 0.0f), 0.75f);
 	SolidRectangle SongStatusRect;

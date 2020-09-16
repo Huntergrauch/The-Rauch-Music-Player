@@ -63,7 +63,6 @@ struct Audio
             ChannelCount = file.getNumChannels();
             if (!SampleRate)
             {
-                cout << "failed to load wav file" << endl;
                 return -1;
             }
         }
@@ -80,7 +79,6 @@ struct Audio
             int decodeerror = mp3dec_load_buf(&mp3d, (const uint8_t*)fileData.data(), fileData.size(), &info, 0, 0);
             if (decodeerror != 0)
             {
-                cout << "failed to decode file" << endl;
                 return -1;
             }
             file.close();
@@ -132,8 +130,7 @@ struct Audio
         }
         else
         {
-            cout << "File extension " << pathextension << " not supported" << endl;
-            return -1;
+            return -2;
         }
         return 0;
     }

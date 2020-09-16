@@ -34,6 +34,7 @@ public:
 	std::map<char, Character> Characters;
     unsigned int PxHeight;
 	
+    //Creates Font object from font file at path fontPath
     Font(const char* fontPath)
     {
         Load(fontPath);
@@ -42,12 +43,12 @@ public:
 	void Load(const char* fontPath)
 	{
         FT_Library ft;
-        if (FT_Init_FreeType(&ft))
-            std::cout << "Could not init FreeType Library" << std::endl;
+        if (int err = FT_Init_FreeType(&ft))
+            std::cout << "Could not init FreeType Library " << FT_Error_String(err) << std::endl;
 
         FT_Face face;
-        if (FT_New_Face(ft, fontPath, 0, &face))
-            std::cout << "Failed to load font" << std::endl;
+        if (int err = FT_New_Face(ft, fontPath, 0, &face))
+            std::cout << "Freetype Failed to load font at path: " << fontPath << ". FT error: " << FT_Error_String(err) << std::endl;
 
         FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -59,7 +60,7 @@ public:
             // load character glyph 
             if (int err = FT_Load_Char(face, c, FT_LOAD_RENDER))
             {
-                std::cout << "ERROR::FREETYPE: Failed to load Glyph"  << err << std::endl;
+                std::cout << "Freetype Failed to load Glyph "  << FT_Error_String(err) << std::endl;
                 continue;
             }
 
